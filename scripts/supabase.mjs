@@ -28,10 +28,15 @@ if (!token) {
   process.exit(1);
 }
 
-const result = spawnSync("npx", ["supabase", ...process.argv.slice(2)], {
+// No Windows o npx é um .cmd e precisa de shell; aí cada argumento tem de ir entre aspas
+// para não ser quebrado nos espaços (ex.: uma consulta SQL).
+const isWin = process.platform === "win32";
+const quote = (a) => (isWin && /[\s"&|<>^()]/.test(a) ? `"${a.replace(/"/g, '""')}"` : a);
+
+const result = spawnSync("npx", ["supabase", ...process.argv.slice(2)].map(quote), {
   cwd: root,
   stdio: "inherit",
-  shell: process.platform === "win32",
+  shell: isWin,
   env: { ...process.env, SUPABASE_ACCESS_TOKEN: token },
 });
 process.exit(result.status ?? 1);
