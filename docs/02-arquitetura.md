@@ -124,13 +124,14 @@ O contador de votos do painel e do telão consulta `GET /api/cerimonias/{id}/con
 
 | Ambiente | Onde | Banco |
 |---|---|---|
-| Local | `next dev` | Supabase local (CLI) com `seed.sql` |
-| Preview | Vercel, um por branch | Projeto Supabase de homologação |
-| Produção | Vercel, começa em `*.vercel.app`; domínio próprio apontado depois | Projeto Supabase de produção |
+| Local | `next dev` | Projeto Supabase **cloud** (sem Supabase local, para acelerar o MVP) |
+| Produção | Vercel, começa em `*.vercel.app`; domínio próprio apontado depois | O mesmo projeto Supabase cloud |
+
+Migrations em `supabase/migrations/`, aplicadas com `npx supabase db push --linked`. Tipos do banco: `npx supabase gen types typescript --linked > lib/database.types.ts`.
 
 Todas as contas (Vercel, Supabase, Google Cloud, Drive) ficam no Gmail do admin. Da escola, só se usa o domínio dos e-mails dos jurados.
 
-Variáveis de ambiente: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_GOOGLE_API_KEY` (restrita por domínio), `SCHOOL_DOMAIN=colegioprogresso.g12.br`, `VOTE_CODE_PEPPER`.
+Variáveis de ambiente (ver `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_GOOGLE_API_KEY` (restrita por domínio), `VOTE_CODE_PEPPER`. O domínio dos jurados fica no banco (`editions.juror_email_domain`), não em variável.
 
 Ao apontar o domínio próprio: adicionar o novo endereço nas URLs de redirecionamento do Supabase Auth, no cliente OAuth e na restrição da chave de API.
 
