@@ -19,11 +19,15 @@ O app usa direto o projeto Supabase **cloud** (não há Supabase local).
 
 ## Banco
 
+O Supabase CLI roda pelo atalho `npm run sb`, que usa o `SUPABASE_ACCESS_TOKEN` do `.env.local`
+(token da conta dona do projeto). Assim ele não depende do login global da máquina, que pode
+ser de outra conta.
+
 ```bash
-npx supabase link --project-ref <ref>
-npx supabase db push --linked                                   # aplica supabase/migrations
-npx supabase gen types typescript --linked > lib/database.types.ts
-npx supabase db advisors --linked                               # checagem de segurança
+npm run sb -- link --project-ref <ref>
+npm run db:push                          # aplica supabase/migrations
+npm run db:types                         # regenera lib/database.types.ts
+npm run sb -- db advisors --linked       # checagem de segurança
 ```
 
 ## Acesso

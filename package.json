@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sb": "node scripts/supabase.mjs",
+    "db:push": "node scripts/supabase.mjs db push --linked",
+    "db:types": "node scripts/supabase.mjs gen types typescript --linked --schema public > lib/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
