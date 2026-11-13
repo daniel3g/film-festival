@@ -4,22 +4,22 @@
 
 | Perfil | Como entra | Identidade no sistema |
 |---|---|---|
-| Admin | Google da escola | Linha em `staff`, com `role = 'admin'` |
-| Jurado | Google da escola | Linha em `jurors` (por edição), ligada ao `auth.users` no primeiro login |
+| Admin | Qualquer conta Google cadastrada em `staff` (o admin principal usa Gmail) | Linha em `staff`, com `role = 'admin'` |
+| Jurado | Google da escola (`@colegioprogresso.g12.br`) | Linha em `jurors` (por edição), ligada ao `auth.users` no primeiro login |
 | Urna | **Pareamento do dispositivo** feito pelo admin | Linha em `devices`, com token guardado no navegador da urna |
 | Telão | Sessão do admin | O mesmo admin |
 | Público | Sem login | Nenhuma |
 
 ## Login Google (admin e jurado)
 
-1. Botão "Entrar com Google" → Supabase Auth (OAuth), com `hd=<domínio da escola>` para o Google já sugerir a conta certa.
-2. No callback (servidor), duas checagens:
-   - o e-mail termina em `@<SCHOOL_DOMAIN>` (o `hd` é só uma dica; quem decide é o servidor);
-   - o e-mail está em `staff` ou em `jurors` da edição ativa.
+1. Botão "Entrar com Google" → Supabase Auth (OAuth). O projeto Google Cloud e o cliente OAuth ficam na conta Gmail do admin, tipo **Externo**, publicado em produção. Como só pede `email` e `profile`, não precisa de verificação do Google nem de lista de usuários de teste.
+2. No callback (servidor), a checagem:
+   - e-mail em `staff` → entra como admin (qualquer domínio);
+   - senão, e-mail termina em `@colegioprogresso.g12.br` **e** está em `jurors` da edição ativa → entra como jurado.
 3. Se falhar, a sessão é encerrada e aparece "Esta conta não tem acesso. Fale com a organização."
 4. No primeiro login do jurado, `jurors.user_id` recebe o `auth.uid()`.
 
-**Escopo extra do admin:** `https://www.googleapis.com/auth/drive.readonly`, pedido só quando o admin clica em "Baixar filmes". O `provider_token` é usado no navegador para baixar do Drive e não é guardado no banco.
+Não há escopo de Drive no login: o download dos filmes usa a chave de API, porque os arquivos são públicos por link.
 
 ## Pareamento das urnas
 

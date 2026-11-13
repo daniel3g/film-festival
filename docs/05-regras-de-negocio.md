@@ -72,7 +72,7 @@ Os prêmios do júri só são revelados **depois** de encerrada a votação (op�
 |---|---|
 | Padrão | Tudo bloqueado (direito de imagem de menores) |
 | Dois níveis | Interruptor da edição **e** interruptor de cada filme. O filme só aparece com os dois ligados |
-| Efeito real | Ligar cria a permissão `anyone/reader` no Drive; desligar remove. A UI só confirma depois da resposta da Drive API |
+| Efeito | Só na plataforma: o filme passa a aparecer (ou some) da galeria. O arquivo no Drive continua público por link o tempo todo |
 | Invisibilidade | Filme bloqueado não aparece de forma nenhuma: nem título, nem pôster, nem prêmio |
 | Auditoria | Toda mudança vai para o `audit_log`, com quem, quando e o estado anterior |
 

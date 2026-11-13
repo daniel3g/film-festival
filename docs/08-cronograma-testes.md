@@ -1,6 +1,6 @@
 # 8 · Cronograma e testes
 
-Hoje: **qui 12/11**. Festival: **ter 24/11**. São 12 dias.
+Docs escritos em **qui 12/11**; revisados em 13/11. Festival: **ter 24/11**.
 
 A ordem segue as **dependências do evento**, não a dos módulos: os jurados precisam de dias para avaliar, então o júri sai primeiro. O telão é o último porque só precisa estar pronto na véspera.
 
@@ -31,7 +31,7 @@ gantt
 
 | Marco | Data | Depende de |
 |---|---|---|
-| Ambientes no ar (Vercel + Supabase + login Google) | 13/11 | Domínio da escola, quem cria o projeto no Google Cloud |
+| Ambientes no ar (Vercel + Supabase + login Google) | 14/11 | Contas no Gmail do admin (decidido) |
 | **Júri no ar** | **seg 17/11** | **Vídeos no Drive**, elenco e e-mails dos jurados |
 | Avaliação do júri encerrada | sex 21/11 (sugestão) | Jurados |
 | Cartões impressos | seg 23/11 | Votação pronta em 19/11 |
@@ -41,7 +41,6 @@ gantt
 1. Galeria pública (pode sair depois do evento)
 2. Upload e troca de trilha (usar as faixas padrão)
 3. Window Management API (arrastar a janela à mão)
-4. Lançamento manual de votos (plano B no papel, contado à mão)
 
 O que **não** pode ser cortado: notas do júri, código de uso único, roteiro do telão e filmes offline.
 
@@ -67,7 +66,8 @@ Simular 80 votos em 10 minutos vindos de 3 urnas, com rajadas. Meta: p95 abaixo 
 - [ ] 3 urnas pareadas, em modo quiosque, na internet da biblioteca
 - [ ] Votar com 3 cartões de teste e conferir o contador no telão (depois, zerar a votação de teste)
 - [ ] Cartões impressos, separados por cerimônia e lote
-- [ ] Pendrive com os arquivos (plano B) e cópia do roteiro em papel
+- [ ] Pendrive com os arquivos (plano B do telão) e cópia do roteiro em papel
+- [ ] Celular com 4G pronto para virar roteador das urnas
 - [ ] Avaliação do júri encerrada, sem empates pendentes
 - [ ] Projeto Supabase ativo (o plano gratuito pausa após 7 dias sem uso)
 

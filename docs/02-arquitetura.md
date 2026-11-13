@@ -9,7 +9,7 @@
 | Banco | **Supabase Postgres** | Relacional (bom para notas e rankings), funções SQL atômicas para o voto, RLS |
 | Login | **Supabase Auth + Google OAuth** | Login com o Google da escola para admin e jurados |
 | Arquivos pequenos | **Supabase Storage** | Pôsteres e faixas da trilha |
-| Vídeos | **Google Drive** (onde a escola já guarda) + **Drive API** | Streaming para jurados, download para o telão, troca de permissão para a galeria |
+| Vídeos | **Google Drive** (pasta pública na conta do admin) + **Drive API com chave de API** | Streaming para jurados, download para o telão, metadados |
 | Offline do telão | **PWA (service worker) + OPFS** | App e arquivos grandes guardados no navegador do notebook |
 | Telão em 2 janelas | **BroadcastChannel** | Painel e projetor conversam sem rede |
 | Áudio | **Web Audio API** | Crossfade, volume e silenciar |
@@ -44,9 +44,9 @@ flowchart LR
   N --> DB
   N --> AU
   A & J --> AU
-  N -- conta de serviço:<br/>permissões --> GD
+  N -- chave de API:<br/>metadados --> GD
   J -- iframe /preview<br/>streaming --> GD
-  A -- token OAuth do admin:<br/>download dos vídeos --> GD
+  A -- chave de API:<br/>download dos vídeos --> GD
   A <-- BroadcastChannel --> P
   A -- OPFS --> A
 ```
@@ -66,25 +66,30 @@ Rotas por perfil:
 | `/telao/projetor/[cerimonia]` | Admin | Aberta pelo painel com `window.open`, vai para a segunda tela |
 | `/galeria/[edicao]` | Público | Página estática (ISR), revalidada quando o admin muda a liberação |
 
-Lógica sensível (voto, notas, troca de permissão no Drive, resultados) roda **no servidor**, em Route Handlers e Server Actions ou em funções SQL. O navegador nunca recebe a chave `service_role`.
+Lógica sensível (voto, notas, galeria, resultados) roda **no servidor**, em Route Handlers e Server Actions ou em funções SQL. O navegador nunca recebe a chave `service_role`.
 
 ### Supabase
 
 - **Postgres:** todas as entidades (ver [Modelo de dados](04-modelo-de-dados.md)). Regras críticas em funções SQL `security definer`, como `cast_vote` e `close_voting`.
 - **RLS ligado em todas as tabelas.** Jurado lê e escreve só as próprias notas. Admin acessa tudo. O público lê só a view da galeria.
-- **Auth:** provedor Google. O domínio da escola é conferido no servidor, além da lista de e-mails autorizados.
+- **Auth:** provedor Google. Jurados precisam ter e-mail `@colegioprogresso.g12.br` (conferido no servidor) e estar na lista da edição. Admins entram pela lista `staff`, com qualquer conta Google (o admin principal usa Gmail).
 - **Storage:** bucket `posters` (leitura pública só para filmes liberados, servida via URL assinada) e bucket `soundtrack` (privado).
 
 ### Google Drive
 
 | Uso | Como |
 |---|---|
-| Jurado assiste | Iframe `https://drive.google.com/file/d/{id}/preview`. O arquivo é compartilhado com o **domínio da escola**, e o jurado já está logado no Google da escola no navegador |
-| Telão baixa | O navegador do admin chama `GET https://www.googleapis.com/drive/v3/files/{id}?alt=media` com o **token OAuth do próprio admin** (escopo `drive.readonly`) e grava o arquivo em streaming no OPFS. O vídeo não passa pela Vercel |
-| Galeria libera ou bloqueia | Uma rota de servidor usa uma **conta de serviço** com a Drive API: cria ou remove a permissão `anyone/reader`. O padrão é `domain/reader` |
-| Metadados | `size`, `md5Checksum`, `videoMediaMetadata.durationMillis`, lidos ao cadastrar o filme |
+| Cadastro | O admin **cola o link de compartilhamento** do vídeo; o sistema extrai o `fileId` e confere se o arquivo está acessível |
+| Jurado assiste | Iframe `https://drive.google.com/file/d/{id}/preview`. Funciona sem login no Google, porque o arquivo é público por link |
+| Telão baixa | O navegador do admin chama `GET https://www.googleapis.com/drive/v3/files/{id}?alt=media&key={API_KEY}` e grava o arquivo em streaming no OPFS. O vídeo não passa pela Vercel |
+| Metadados | `size`, `md5Checksum`, `videoMediaMetadata.durationMillis`, lidos pela mesma chave ao cadastrar o filme |
 
-**Pré-requisito:** os vídeos ficam num **Drive compartilhado** da escola (ou numa pasta), com a conta de serviço como Editor. Ver [Decisões em aberto](09-decisoes-em-aberto.md): o Workspace pode bloquear o compartilhamento "qualquer pessoa com o link".
+**Pré-requisitos:**
+- Os vídeos ficam numa **pasta do Drive do admin**, compartilhada como "qualquer pessoa com o link: leitor".
+- Um **projeto no Google Cloud** na conta do admin, com: cliente OAuth (só os escopos básicos `email` e `profile`, que não exigem verificação do Google) e uma **chave de API** limitada à Drive API e ao domínio da plataforma.
+- Não há conta de serviço nem escopo de Drive no login.
+
+**Consequência:** como os arquivos são públicos por link, a galeria "bloqueada" significa **escondida na plataforma**, não trancada no Drive. Quem tiver o link do arquivo consegue assistir. Ver [Segurança e privacidade](07-seguranca-privacidade.md).
 
 ### Tempo real
 
@@ -104,7 +109,7 @@ O contador de votos do painel e do telão consulta `GET /api/cerimonias/{id}/con
 │  └─ api/
 ├─ lib/
 │  ├─ supabase/               ← clientes do navegador e do servidor
-│  ├─ drive/                  ← Drive API: metadados, permissões
+│  ├─ drive/                  ← Drive API: link → fileId, metadados
 │  ├─ offline/                ← OPFS: download, verificação, leitura
 │  ├─ ceremony/               ← montagem do roteiro (passos)
 │  └─ audio/                  ← motor da trilha (Web Audio)
@@ -121,9 +126,13 @@ O contador de votos do painel e do telão consulta `GET /api/cerimonias/{id}/con
 |---|---|---|
 | Local | `next dev` | Supabase local (CLI) com `seed.sql` |
 | Preview | Vercel, um por branch | Projeto Supabase de homologação |
-| Produção | Vercel (domínio `*.vercel.app` ou da escola) | Projeto Supabase de produção |
+| Produção | Vercel, começa em `*.vercel.app`; domínio próprio apontado depois | Projeto Supabase de produção |
 
-Variáveis de ambiente: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `SCHOOL_DOMAIN`, `VOTE_CODE_PEPPER`.
+Todas as contas (Vercel, Supabase, Google Cloud, Drive) ficam no Gmail do admin. Da escola, só se usa o domínio dos e-mails dos jurados.
+
+Variáveis de ambiente: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_GOOGLE_API_KEY` (restrita por domínio), `SCHOOL_DOMAIN=colegioprogresso.g12.br`, `VOTE_CODE_PEPPER`.
+
+Ao apontar o domínio próprio: adicionar o novo endereço nas URLs de redirecionamento do Supabase Auth, no cliente OAuth e na restrição da chave de API.
 
 ## Limites dos planos gratuitos (conferir)
 

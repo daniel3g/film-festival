@@ -28,13 +28,13 @@
 ### RF-1 · Cadastro (admin)
 - RF-1.1 Criar **edições** (2026 Classics, 2027…). O histórico das edições anteriores é preservado.
 - RF-1.2 Criar cerimônias da edição, com horário, público e prefixo dos códigos (`JM`, `SR`, `JT`).
-- RF-1.3 Cadastrar filmes: título, turma, cerimônia, arquivo no Google Drive e pôster.
+- RF-1.3 Cadastrar filmes **em telas do admin, gravando direto no banco** (sem planilha de importação): título, turma, cerimônia, ordem de exibição, **sinopse**, **pôster** (upload da imagem) e **link público do vídeo no Drive** (colado pelo admin; o sistema extrai o arquivo e confere se abre).
 - RF-1.4 Cadastrar o elenco de cada filme e marcar quem é **avaliado** (concorre a Melhor Ator/Atriz) e em qual das duas categorias.
-- RF-1.5 Cadastrar os jurados pelo e-mail institucional.
+- RF-1.5 Cadastrar os jurados pelo e-mail institucional (`@colegioprogresso.g12.br`).
 - RF-1.6 Cadastrar a trilha sonora: uma faixa por momento da cerimônia, igual nas 3 cerimônias, com troca opcional por cerimônia.
 
 ### RF-2 · Júri
-- RF-2.1 O jurado entra com a conta Google da escola. Só e-mails cadastrados têm acesso.
+- RF-2.1 O jurado entra com a conta Google da escola (`@colegioprogresso.g12.br`). Só e-mails cadastrados têm acesso.
 - RF-2.2 Assiste a cada filme dentro da plataforma (streaming do Drive) e dá as notas na mesma tela.
 - RF-2.3 As notas vão de **0 a 10, com meio ponto**: Melhor Filme, Roteiro, Figurino e Maquiagem, Filmagem, e atuação de cada integrante avaliado do elenco.
 - RF-2.4 As notas são salvas automaticamente e podem ser alteradas até o admin **encerrar a avaliação**.
@@ -61,7 +61,7 @@
 ### RF-5 · Galeria pública (pós-evento)
 - RF-5.1 Página pública, sem login, com os filmes liberados e seus prêmios.
 - RF-5.2 Liberação em dois níveis: a edição inteira e cada filme. O padrão é **bloqueado**.
-- RF-5.3 Liberar ou bloquear muda a **permissão real** do arquivo no Drive e fica registrado no log (quem e quando).
+- RF-5.3 Liberar ou bloquear fica registrado no log (quem e quando). O efeito é na plataforma: o arquivo no Drive continua público por link (ver [Segurança](07-seguranca-privacidade.md)).
 - RF-5.4 Filme bloqueado não aparece de forma nenhuma: nem título, nem pôster, nem prêmio.
 
 ## Requisitos não funcionais

@@ -60,12 +60,12 @@ erDiagram
 | ceremony_id | uuid FK | A edição vem pela cerimônia |
 | title | text | |
 | class_name | text | Turma, por exemplo "8th A" |
-| drive_file_id | text | |
+| synopsis | text | Sinopse curta (urna, galeria) |
+| drive_file_id | text | Extraído do link colado pelo admin |
 | size_bytes / duration_ms / md5 | bigint / int / text | Lidos da Drive API ao cadastrar |
 | poster_path | text | Caminho no Storage |
 | screening_order | int | Ordem de exibição na cerimônia |
 | is_public | bool | Padrão `false` |
-| drive_permission | enum `domain \| anyone` | Estado real no Drive (confirmado pela API) |
 
 ### `cast_members`
 | Coluna | Tipo | Notas |
