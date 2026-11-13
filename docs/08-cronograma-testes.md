@@ -16,9 +16,9 @@ gantt
   section Cadastro + Júri
   Admin: edição, cerimônias, filmes, elenco       :b1, 2026-11-14, 2d
   Júri: login, player, notas, progresso           :b2, 2026-11-15, 2d
-  Júri no ar (jurados avaliando)                  :milestone, m1, 2026-11-17, 0d
+  Júri no ar (jurados avaliando)                  :milestone, m1, 2026-11-16, 0d
   section Votação
-  Códigos, cartões PDF, pareamento, urna          :c1, 2026-11-17, 2d
+  Códigos, cartões PDF, pareamento, urna          :c1, 2026-11-16, 2d
   Resultados, desempates                          :c2, 2026-11-19, 1d
   section Telão
   Painel + projetor + roteiro                     :d1, 2026-11-19, 2d
@@ -32,8 +32,8 @@ gantt
 | Marco | Data | Depende de |
 |---|---|---|
 | Ambientes no ar (Vercel + Supabase + login Google) | 14/11 | Contas no Gmail do admin (decidido) |
-| **Júri no ar** | **seg 17/11** | **Vídeos no Drive**, elenco e e-mails dos jurados |
-| Avaliação do júri encerrada | sex 21/11 (sugestão) | Jurados |
+| **Júri no ar** | **seg 16/11** | **Vídeos no Drive**, elenco e e-mails dos jurados (até dom 15/11) |
+| Avaliação do júri encerrada | sex 20/11 (sugestão) | Jurados |
 | Cartões impressos | seg 23/11 | Votação pronta em 19/11 |
 | Ensaio geral | seg 23/11 | Tudo |
 

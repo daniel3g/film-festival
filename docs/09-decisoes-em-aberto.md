@@ -27,7 +27,7 @@
 | # | Questão | Quem decide | Impacto | Sugestão |
 |---|---|---|---|---|
 | D5 | Formato dos vídeos | Turmas | Reprodução no Chrome | MP4 (H.264 + AAC), 1080p no máximo |
-| D7 | Prazo para os jurados terminarem as notas | Organização | Desempates antes do evento | Sexta 21/11 |
+| D7 | Prazo para os jurados terminarem as notas | Organização | Desempates antes do evento | Sexta 20/11 |
 | D8 | **Termo de uso de imagem** dos alunos para a galeria | Coordenação | Galeria pública | Galeria só depois do evento, com os termos recolhidos |
 | D9 | Coordenação ciente do uso de Supabase, Vercel e Google (LGPD) | Coordenação | Conformidade | Nota curta explicando dados e finalidade |
 | D11 | Segundo notebook de reserva para o telão? | Organização | Risco no dia | Recomendado |
@@ -39,7 +39,7 @@
 | Item | Para quando | Usado em |
 |---|---|---|
 | Elenco de cada turma (nome curto, personagem, quem é avaliado e se é ator ou atriz) | 15/11 | Cadastro, júri |
-| Arquivos de vídeo finais | **16/11** | Júri (precisa estar no ar em 17/11) |
+| Arquivos de vídeo finais | **dom 15/11** | Júri (precisa estar no ar na seg 16/11) |
 | Pôsteres dos filmes | 19/11 | Telão, urna, galeria |
 | E-mails dos jurados (`@colegioprogresso.g12.br`) | 15/11 | Login do júri |
 | Número de alunos por turma votante | 18/11 | Quantidade de cartões (hoje: 90 por cerimônia) |
