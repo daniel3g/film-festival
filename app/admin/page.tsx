@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -50,9 +51,10 @@ export default async function AdminHome() {
         ))}
       </section>
 
-      <p className="text-sm text-muted">
-        Próximo passo do desenvolvimento: telas de cadastro de filmes, elenco e jurados.
-      </p>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/admin/filmes" className="btn">Cadastrar filmes</Link>
+        <Link href="/admin/jurados" className="btn-ghost">Cadastrar jurados</Link>
+      </div>
     </div>
   );
 }
