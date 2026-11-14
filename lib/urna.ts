@@ -12,6 +12,15 @@ export type UrnaDevice = {
   ceremony: { id: string; name: string; short_name: string; code_prefix: string; voting_status: "not_started" | "open" | "closed" } | null;
 };
 
+/**
+ * Hash do token da urna, só pelo cookie (sem consultar o banco).
+ * As funções SQL check_code/cast_vote já identificam e validam a urna por ele.
+ */
+export async function getUrnaTokenHash(): Promise<string | null> {
+  const token = (await cookies()).get(URNA_COOKIE)?.value;
+  return token ? hashToken(token) : null;
+}
+
 /** Urna pareada deste navegador (pelo cookie), ou null. */
 export async function getUrnaDevice(): Promise<UrnaDevice | null> {
   const token = (await cookies()).get(URNA_COOKIE)?.value;

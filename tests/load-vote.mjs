@@ -2,7 +2,6 @@
 // Cria dados temporários na cerimônia JT e apaga tudo ao final.
 // Uso: node --env-file=.env.local tests/load-vote.mjs
 import { createClient } from "@supabase/supabase-js";
-import { randomUUID } from "node:crypto";
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {
   auth: { persistSession: false },

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getBallot, getUrnaDevice, URNA_COOKIE, type BallotFilm } from "@/lib/urna";
+import { getBallot, getUrnaDevice, getUrnaTokenHash, URNA_COOKIE, type BallotFilm } from "@/lib/urna";
 import { hashCode, hashToken, newDeviceToken, normalizeCode, normalizePairingCode } from "@/lib/vote-codes";
 
 // ---------------------------------------------------------------- pareamento
@@ -98,16 +98,20 @@ async function otherCeremonyMessage(code: string) {
     : "Este cartão é de outra cerimônia.";
 }
 
-/** Passo 1: confere o código e libera a cédula (não gasta o código). */
-export async function checkVoteCode(input: string): Promise<VoteStep> {
-  const device = await getUrnaDevice();
-  if (!device?.ceremony) return { ok: false, reason: "no_device", message: MESSAGES.no_device };
+/**
+ * Passo 1: confere o código e libera a cédula (não gasta o código).
+ * `prefix` vem da tela da urna e só serve para completar códigos digitados
+ * sem prefixo; quem valida a urna e a cerimônia é a função SQL (1 consulta só).
+ */
+export async function checkVoteCode(input: string, prefix: string): Promise<VoteStep> {
+  const tokenHash = await getUrnaTokenHash();
+  if (!tokenHash) return { ok: false, reason: "no_device", message: MESSAGES.no_device };
 
-  const code = normalizeCode(input, device.ceremony.code_prefix);
+  const code = normalizeCode(input, prefix);
   if (!code) return { ok: false, reason: "format", message: MESSAGES.format };
 
   const { data, error } = await createAdminClient().rpc("check_code", {
-    p_token_hash: device.tokenHash,
+    p_token_hash: tokenHash,
     p_code_hash: hashCode(code),
   });
   if (error) return { ok: false, reason: "error", message: "Falha de conexão. Tente de novo." };
@@ -116,16 +120,16 @@ export async function checkVoteCode(input: string): Promise<VoteStep> {
   return { ok: false, reason: data, message: MESSAGES[data] ?? "Não foi possível conferir o código." };
 }
 
-/** Passo 2: registra o voto (gasta o código na mesma operação). */
+/** Passo 2: registra o voto (gasta o código na mesma operação). `code` é o código completo do passo 1. */
 export async function castVote(code: string, filmId: string): Promise<VoteStep> {
-  const device = await getUrnaDevice();
-  if (!device?.ceremony) return { ok: false, reason: "no_device", message: MESSAGES.no_device };
+  const tokenHash = await getUrnaTokenHash();
+  if (!tokenHash) return { ok: false, reason: "no_device", message: MESSAGES.no_device };
 
-  const normalized = normalizeCode(code, device.ceremony.code_prefix);
+  const normalized = normalizeCode(code, ""); // já vem com prefixo
   if (!normalized) return { ok: false, reason: "format", message: MESSAGES.format };
 
   const { data, error } = await createAdminClient().rpc("cast_vote", {
-    p_token_hash: device.tokenHash,
+    p_token_hash: tokenHash,
     p_code_hash: hashCode(normalized),
     p_film: filmId,
   });

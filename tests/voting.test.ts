@@ -81,6 +81,9 @@ test("normalizeCode aceita variações e usa o prefixo da urna", () => {
   assert.equal(normalizeCode("abc", "SR"), null);
   assert.equal(normalizeCode("", "SR"), null);
   assert.equal(normalizeCode("12-K7PX", "SR"), null);
+  // passo 2 da urna: o código já vem completo do passo 1
+  assert.equal(normalizeCode("SR-K7PX", ""), "SR-K7PX");
+  assert.equal(normalizeCode("K7PX", ""), null);
 });
 
 test("códigos gerados usam só o alfabeto sem ambiguidade", () => {

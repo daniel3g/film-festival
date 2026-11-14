@@ -83,7 +83,7 @@ function VotingFlow({ ceremony, label }: { ceremony: { id: string; name: string;
     setError(null);
     startTransition(async () => {
       try {
-        const r = await checkVoteCode(input);
+        const r = await checkVoteCode(input, ceremony.prefix);
         if (r.ok) setScreen({ name: "ballot", code: r.code });
         else setError(r.message);
       } catch {
