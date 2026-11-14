@@ -46,6 +46,22 @@ export async function saveScore(input: SaveScoreInput): Promise<SaveScoreResult>
   return error ? { ok: false, error: message(error) } : { ok: true };
 }
 
+/** Voto do jurado numa rodada de desempate (pode trocar enquanto estiver aberta). */
+export async function voteTiebreak(tiebreakId: string, choiceRef: string): Promise<SaveScoreResult> {
+  const supabase = await createClient();
+  const { data: jurorId } = await supabase.rpc("current_juror_id");
+  if (!jurorId) return { ok: false, error: "Sessão expirada. Entre de novo." };
+
+  const { data: tb } = await supabase.from("tiebreaks").select("status, tied_refs").eq("id", tiebreakId).maybeSingle();
+  if (!tb || tb.status !== "open") return { ok: false, error: "Este desempate já foi encerrado." };
+  if (!(tb.tied_refs as string[]).includes(choiceRef)) return { ok: false, error: "Opção inválida." };
+
+  const { error } = await supabase
+    .from("tiebreak_votes")
+    .upsert({ tiebreak_id: tiebreakId, juror_id: jurorId, choice_ref: choiceRef }, { onConflict: "tiebreak_id,juror_id" });
+  return error ? { ok: false, error: message(error) } : { ok: true };
+}
+
 function message(error: { code?: string; message: string }) {
   if (error.code === "P0001") return error.message; // ex.: avaliação encerrada
   if (error.code === "42501") return "Sem permissão para salvar esta nota.";

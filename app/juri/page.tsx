@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getJuryCategories, scoreItemsFor } from "@/lib/jury";
+import { TiebreakVote } from "./tiebreak-vote";
 
 export const metadata: Metadata = { title: "Júri" };
 
 export default async function JuriHome() {
   const supabase = await createClient();
-  const [{ data: ceremonies }, categories, { data: myScores }, { data: edition }] = await Promise.all([
+  const [{ data: ceremonies }, categories, { data: myScores }, { data: edition }, { data: tiebreaks }, { data: myVotes }] = await Promise.all([
     supabase
       .from("ceremonies")
       .select("id, name, sort_order, films(id, title, class_name, screening_order, poster_path, drive_file_id, cast_members(id, student_name, role_name, is_evaluated, acting_category))")
@@ -16,7 +17,31 @@ export default async function JuriHome() {
     getJuryCategories(supabase),
     supabase.from("scores").select("film_id"),
     supabase.from("editions").select("jury_status").eq("is_active", true).maybeSingle(),
+    supabase.from("tiebreaks").select("id, ceremony_id, category_id, tied_refs").eq("status", "open"),
+    supabase.from("tiebreak_votes").select("tiebreak_id, choice_ref"),
   ]);
+
+  // Rodadas de desempate abertas, com os nomes dos empatados.
+  const filmById = new Map(ceremonies?.flatMap((c) => c.films.map((f) => [f.id, f] as const)) ?? []);
+  const castById = new Map(
+    ceremonies?.flatMap((c) => c.films.flatMap((f) => f.cast_members.map((m) => [m.id, { ...m, film: f }] as const))) ?? [],
+  );
+  const openTiebreaks = (tiebreaks ?? []).map((t) => {
+    const cat = categories.find((c) => c.id === t.category_id);
+    const cer = ceremonies?.find((c) => c.id === t.ceremony_id);
+    const options = (t.tied_refs as string[]).map((ref) => {
+      const film = filmById.get(ref);
+      if (film) return { ref, label: film.title, sublabel: film.class_name ?? "" };
+      const m = castById.get(ref);
+      return { ref, label: m?.student_name ?? "?", sublabel: m ? `${m.role_name ? `${m.role_name} · ` : ""}${m.film.title}` : "" };
+    });
+    return {
+      id: t.id,
+      title: `${cat?.name_pt ?? ""} · ${cer?.name ?? ""}`,
+      options,
+      choice: myVotes?.find((v) => v.tiebreak_id === t.id)?.choice_ref ?? null,
+    };
+  });
 
   const scoredByFilm = new Map<string, number>();
   for (const s of myScores ?? []) scoredByFilm.set(s.film_id, (scoredByFilm.get(s.film_id) ?? 0) + 1);
@@ -62,6 +87,14 @@ export default async function JuriHome() {
         <p className="rounded-md border border-gold/30 bg-gold/10 p-3 text-sm">
           A avaliação foi encerrada. Obrigado! As notas estão disponíveis só para consulta.
         </p>
+      )}
+
+      {openTiebreaks.length > 0 && (
+        <section className="space-y-3">
+          {openTiebreaks.map((t) => (
+            <TiebreakVote key={t.id} tiebreakId={t.id} title={t.title} options={t.options} initialChoice={t.choice} />
+          ))}
+        </section>
       )}
 
       {cards?.map((c) => (
