@@ -29,7 +29,7 @@ Empates do júri **não** são resolvidos automaticamente.
 | Regra | Detalhe |
 |---|---|
 | Quem vota | Alunos presentes na cerimônia, com cartão |
-| Códigos | 90 por cerimônia, em lotes A, B e C de 30, com prefixo da cerimônia (`SR-K7PX`). Alfabeto sem caracteres ambíguos: `ACDEFHJKMNPRTUVWXY3479` |
+| Códigos | Lotes de 30 (A, B, C e D opcional): 90 no Junior manhã e no Senior, 120 no Junior tarde, com prefixo da cerimônia (`SR-K7PX`). Alfabeto sem caracteres ambíguos: `ACDEFHJKMNPRTUVWXY3479` |
 | Validade | Uma vez, só na própria cerimônia, só com a votação aberta |
 | Anonimato | O cartão é entregue na porta, sem nome. O voto não guarda o código |
 | Opções | Os filmes da cerimônia; o aluno escolhe um |

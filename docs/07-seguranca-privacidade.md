@@ -20,7 +20,7 @@
 |---|---|
 | Aluno vota duas vezes | Código de uso único, queimado de forma atômica (`UPDATE … WHERE used_at IS NULL`) |
 | Votar de fora da escola ou do celular | Voto só aceito de **urnas pareadas** (token do dispositivo em cookie `httpOnly`) |
-| Adivinhar códigos | 22⁴ ≈ 234 mil combinações para 90 válidos; limite de tentativas por urna (5 erros seguidos → 10 s de espera); e só de urnas pareadas |
+| Adivinhar códigos | 22⁴ ≈ 234 mil combinações para até 120 válidos; limite de tentativas por urna (5 erros seguidos → 10 s de espera); e só de urnas pareadas |
 | Vazamento do banco revelar códigos | Códigos guardados como `sha256(pepper ‖ código)`; o pepper fica só na Vercel |
 | Alguém ver o resultado antes | Parcial oculta até encerrar; notas só para o admin, via RLS e views protegidas; o projetor nunca recebe o que ainda não deve mostrar |
 | Jurado alterar nota depois do prazo | Trigger bloqueia escrita com `jury_status = closed` |

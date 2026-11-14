@@ -10,6 +10,7 @@
 | Vídeos | Pasta do Drive do admin, **pública por link**; download e metadados por chave de API (sem conta de serviço) |
 | Endereço | Começa em `*.vercel.app`; domínio próprio apontado depois, na Vercel |
 | Cadastro | Telas do admin gravando direto no banco: filmes (sinopse, pôster, link do Drive), elenco, jurados |
+| Votantes | JM 60 (6A+7A), SR 59 (8A+9A), JT ~95 (5th+6B+8B+9B+voluntários); 1st/2nd não votam. Cartões: 90/90/120 |
 | Plano B das urnas | **Sem votação em papel.** Se a internet cair, 4G do celular como roteador |
 | Voto | Código anônimo por cerimônia, cartão impresso entregue na porta, uso único |
 | Urnas | 3 computadores com internet; a urna antiga da escola não será reaproveitada |
@@ -42,5 +43,4 @@
 | Arquivos de vídeo finais | **dom 15/11** | Júri (precisa estar no ar na seg 16/11) |
 | Pôsteres dos filmes | 19/11 | Telão, urna, galeria |
 | E-mails dos jurados (`@colegioprogresso.g12.br`) | 15/11 | Login do júri |
-| Número de alunos por turma votante | 18/11 | Quantidade de cartões (hoje: 90 por cerimônia) |
 | Equipamento: notebook do telão, projetor, cabo HDMI, som, 3 urnas | 21/11 | Ensaio geral |

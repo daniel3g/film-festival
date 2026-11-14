@@ -112,7 +112,7 @@ Uma nota por jurado, por alvo e por categoria.
 ### Votação
 | Tabela | Colunas | Notas |
 |---|---|---|
-| `vote_codes` | id, ceremony_id, code_hash, batch (`A\|B\|C`), used_at, used_device_id | `code_hash = sha256(pepper ‖ código)`. O código em texto claro só existe na geração do PDF |
+| `vote_codes` | id, ceremony_id, code_hash, batch (`A\|B\|C\|D`), used_at, used_device_id | `code_hash = sha256(pepper ‖ código)`. O código em texto claro só existe na geração do PDF |
 | `votes` | id, ceremony_id, film_id, device_id, created_at | **Sem ligação com o código**: anonimato |
 | `devices` | id, label, ceremony_id, token_hash, pairing_code_hash, pairing_expires_at, revoked_at | Urnas |
 

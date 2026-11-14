@@ -10,7 +10,7 @@
 | Categorias por cerimônia | 7: 6 do júri + People's Choice |
 | Indicados por categoria | Até 3. Com 3 concorrentes ou menos, todos aparecem |
 | Jurados | Poucos (cerca de 5); cada um avalia **os 10 filmes** |
-| Votantes por cerimônia | 60 a 80 alunos |
+| Votantes por cerimônia | Junior manhã 60 · Senior 59 · Junior tarde ~95 (ver abaixo) |
 | Urnas | 3 computadores, todos com internet |
 | Fila de votação estimada | 10 a 12 minutos com 3 urnas |
 | Tamanho dos vídeos | Cerca de 350 a 600 MB por filme (estimado; confirmar) |
@@ -22,6 +22,16 @@
 | Junior Premiere – manhã | 8h–9h30 | 6th e 7th | 2 |
 | Senior Premiere | 10h40–12h | 8th e 9th | 6 |
 | Junior Premiere – tarde | 14h–15h30 | 5th, 6th e alunos da manhã | 2 |
+
+### Votantes (People's Choice)
+
+Turmas **A** estudam de manhã e turmas **B** à tarde. **1st e 2nd** produzem os filmes do Senior e **não votam**.
+
+| Cerimônia | Turmas que votam | Votantes | Cartões |
+|---|---|---|---|
+| Junior manhã | 6A (22) + 7A (38) | 60 | 90 (lotes A–C) |
+| Senior | 8A (28) + 9A (31) | 59 | 90 (lotes A–C) |
+| Junior tarde | 5th (~35) + 6B (21) + 8B (12) + 9B (12) + voluntários da manhã (até 15) | ~95 | 120 (lotes A–D) |
 
 ## Requisitos funcionais
 
@@ -41,7 +51,7 @@
 - RF-2.5 O admin acompanha o progresso por jurado e por filme.
 
 ### RF-3 · Votação do público (People's Choice)
-- RF-3.1 O admin gera **90 códigos anônimos por cerimônia**, em 3 lotes de 30, e exporta um PDF de cartões para impressão.
+- RF-3.1 O admin gera **códigos anônimos em lotes de 30** (A, B, C e um D opcional) por cerimônia e imprime os cartões: 90 no Junior manhã e no Senior, 120 no Junior tarde.
 - RF-3.2 O código vale **uma vez** e **só na sua cerimônia**.
 - RF-3.3 Na urna, o aluno digita o código, escolhe um filme da cerimônia e confirma. O código é "queimado".
 - RF-3.4 O admin abre e encerra a votação de cada cerimônia. O resultado parcial fica oculto até o encerramento.

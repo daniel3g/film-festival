@@ -14,7 +14,7 @@
 | Telão em 2 janelas | **BroadcastChannel** | Painel e projetor conversam sem rede |
 | Áudio | **Web Audio API** | Crossfade, volume e silenciar |
 | UI | Tailwind CSS + componentes próprios | Visual do protótipo (tema "Classics") |
-| PDF dos cartões | `@react-pdf/renderer` ou impressão de página HTML | 90 cartões por cerimônia |
+| Cartões | Página HTML com CSS de impressão (15 por A4) | 90 a 120 cartões por cerimônia |
 
 ## Visão geral
 
