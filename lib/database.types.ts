@@ -706,6 +706,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      reset_voting: { Args: { p_ceremony: string }; Returns: Json }
       urna_register_failure: { Args: { p_device: string }; Returns: undefined }
     }
     Enums: {

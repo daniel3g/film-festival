@@ -29,6 +29,21 @@ export async function setVotingStatus(fd: FormData): Promise<void> {
   refresh();
 }
 
+// ---------------------------------------------------------------- zerar (testes)
+
+export type ResetResult = { ok: true; votes: number; codes: number } | { ok: false; error: string };
+
+/** Apaga votos e códigos da cerimônia e volta a votação para "não aberta". */
+export async function resetVoting(ceremonyId: string): Promise<ResetResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { ok: false, error: NO_ACCESS };
+  const { data, error } = await supabase.rpc("reset_voting", { p_ceremony: ceremonyId });
+  if (error) return { ok: false, error: dbError(error) };
+  const r = data as { votes: number; codes: number };
+  refresh();
+  return { ok: true, votes: r.votes, codes: r.codes };
+}
+
 // ---------------------------------------------------------------- códigos
 
 export type GeneratedBatch =

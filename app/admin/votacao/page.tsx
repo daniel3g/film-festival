@@ -7,6 +7,7 @@ import { setVotingStatus } from "./actions";
 import { BatchPanel } from "./batch-panel";
 import { DevicesPanel } from "./devices-panel";
 import { LiveProvider, LiveVotes } from "./live";
+import { ResetVoting } from "./reset-voting";
 
 export const metadata: Metadata = { title: "Votação" };
 
@@ -146,6 +147,8 @@ export default async function VotacaoPage() {
                     {pc.decidedBy && <p className="mt-2 text-xs text-muted">{DECIDED_BY[pc.decidedBy]}</p>}
                   </details>
                 )}
+
+                <ResetVoting ceremonyId={c.id} ceremonyName={c.name} prefix={c.code_prefix} />
               </article>
             );
           })}
