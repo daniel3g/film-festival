@@ -1,0 +1,86 @@
+/* Telão: tudo em unidades do contêiner (cqw) para valer igual no projetor e na miniatura. */
+.stage {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 0%, #1d1710 0%, #07070a 60%);
+  color: #f3ead6;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 2.5cqw;
+  border: 1px solid #d4af3733;
+  border-radius: 0.4cqw;
+  pointer-events: none;
+}
+.stage .pv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6cqw;
+  padding: 0 6cqw;
+  width: 100%;
+  animation: st-fade 0.6s ease both;
+}
+@keyframes st-fade {
+  from { opacity: 0; transform: translateY(1cqw); }
+  to { opacity: 1; transform: none; }
+}
+.stage .k { font-size: 1.5cqw; letter-spacing: 0.4em; text-transform: uppercase; color: #e5bd63; font-weight: 700; }
+.stage .xl { font-family: var(--font-playfair), Georgia, serif; font-size: 7cqw; line-height: 1.04; text-wrap: balance; }
+.stage .l { font-family: var(--font-playfair), Georgia, serif; font-size: 4.6cqw; line-height: 1.08; text-wrap: balance; }
+.stage .m { font-size: 2.1cqw; color: #a39c8c; font-weight: 600; }
+.stage .gold { color: #e5bd63; }
+.stage .row { display: flex; gap: 3cqw; justify-content: center; align-items: flex-start; width: 100%; }
+.stage .nom { width: 17cqw; display: flex; flex-direction: column; gap: 0.9cqw; align-items: center; }
+.stage .nom .nm { font-size: 1.9cqw; font-weight: 800; line-height: 1.15; }
+.stage .nom .ns { font-size: 1.35cqw; color: #a39c8c; line-height: 1.3; }
+.stage .cart { display: grid; grid-template-columns: 22cqw auto; gap: 4cqw; align-items: center; text-align: left; }
+.stage .win .poster { width: 17cqw; box-shadow: 0 0 0 0.3cqw #e5bd63, 0 0 6cqw #e5bd6355; }
+.stage .wins { display: flex; gap: 4cqw; justify-content: center; }
+.stage .shine {
+  background: linear-gradient(90deg, #e5bd63, #fff3c9, #e5bd63);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: st-shine 3s linear infinite;
+}
+@keyframes st-shine { to { background-position: -200% 0; } }
+.stage .count { font-family: ui-monospace, Consolas, monospace; font-size: 10cqw; font-weight: 700; color: #e5bd63; line-height: 1; }
+.stage .stripwrap { width: 100%; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); }
+.stage .strip { display: flex; gap: 2cqw; width: max-content; animation: st-strip 30s linear infinite; }
+.stage .strip .poster { width: 9cqw; }
+@keyframes st-strip { to { transform: translateX(-50%); } }
+
+.stage .poster {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  border-radius: 0.5cqw;
+  overflow: hidden;
+  background: linear-gradient(170deg, #3a2c14, #0d0a05);
+  box-shadow: inset 0 0 0 1px #d4af3755;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1cqw;
+}
+.stage .poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stage .poster .pt { font-family: var(--font-playfair), Georgia, serif; font-size: 1.6cqw; line-height: 1.1; color: #f6ecd8; }
+.stage .cart .poster .pt, .stage .win .poster .pt { font-size: 2.6cqw; }
+
+.stage .video { position: absolute; inset: 0; background: #000; display: grid; place-items: center; z-index: 1; }
+.stage .video video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+.stage .video .msg { color: #8a8496; font-size: 1.8cqw; padding: 4cqw; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stage * { animation: none !important; }
+}

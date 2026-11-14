@@ -42,8 +42,8 @@ Admin → Cerimônia → **Baixar filmes**, no notebook do telão, em Chrome.
 2. Para cada filme: `fetch` do Drive com `alt=media&key={API_KEY}` (arquivo público, sem login no Google) → `response.body` lido em blocos → `FileSystemWritableFileStream` no **OPFS** (`/films/{filmId}.mp4`). Mostra o progresso por arquivo e o total.
 3. **Verificação:** compara o tamanho com `size_bytes`; abre o arquivo num `<video>` oculto e confere `duration` contra `duration_ms` (tolerância de 1 s); faz `seek` para perto do fim e confere que decodifica. Se falhar, baixa de novo.
 4. Trilha: baixa as faixas do Storage (as que valem para aquela cerimônia) para `/soundtrack/{cue}.mp3`.
-5. **Snapshot da cerimônia:** salva `v_ceremony_results` (júri), pôsteres e textos em `/ceremony/{id}.json`. O resultado do People's Choice só entra no dia, ao encerrar a votação.
-6. O service worker já guardou o app (HTML, JS, CSS e fontes). Um **teste offline** desliga a rede (DevTools ou cabo) e abre o modo apresentação.
+5. **Snapshot da cerimônia:** a página do painel já traz os resultados do júri, os textos e os pôsteres. O service worker (`public/sw.js`) guarda a última cópia de `/telao/*` (rede primeiro, cópia sem rede) e os arquivos do app (`/_next/static`, cache primeiro). Por isso é preciso **abrir o modo apresentação uma vez com internet**, depois de baixar. O resultado do People's Choice só entra no dia, ao encerrar a votação.
+6. Um **teste offline** desliga a rede (DevTools ou cabo) e abre o modo apresentação.
 
 O que exige internet no dia: o **contador de votos** e o **resultado do People's Choice**. As urnas precisam de internet de qualquer forma.
 
@@ -74,4 +74,10 @@ AudioContext
 - Faixas "uma vez" (`abertura`, `fanfarra`, `fanfarra_pc`) passam sozinhas para `ambiente` no `ended`.
 - Faixas em loop usam `audio.loop = true`.
 - O `AudioContext` só nasce no primeiro gesto do usuário (política de autoplay). O painel mostra "Clique para ativar o som" até isso acontecer.
-- O protótipo usa síntese no navegador. A versão real toca os arquivos baixados.
+- Cada momento toca o arquivo enviado em Admin → Telão (baixado no OPFS; online, a URL assinada). Sem arquivo, toca o **exemplo sintetizado** no navegador (o mesmo da prévia), que funciona offline.
+
+## Implementação
+- `lib/telao.ts`: roteiro, indicados (top 3 + sorteio fixo), o que o projetor recebe (`View`) e mensagens.
+- `lib/telao-server.ts`: monta o show da cerimônia (júri, PC, pôsteres, faixas).
+- `app/telao/[id]` painel · `app/telao/[id]/projetor` projetor · `app/admin/telao` download e trilha.
+- `lib/opfs.ts` (arquivos locais) · `lib/soundtrack.ts` (motor da trilha).
