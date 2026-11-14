@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getJuryCategories, scoreItemsFor, scoreKey } from "@/lib/jury";
+import { DriveVideoPlayer } from "@/components/drive-video-player";
 import { ScorePanel } from "./score-panel";
 
 export const metadata: Metadata = { title: "Avaliar filme" };
@@ -60,19 +61,9 @@ export default async function JuriFilmePage({ params }: PageProps<"/juri/filmes/
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-gold/20 bg-black">
+          <div className="aspect-video w-full overflow-hidden rounded-lg border border-gold/20 bg-black">
             {film.drive_file_id ? (
-              <>
-                <iframe
-                  src={`https://drive.google.com/file/d/${film.drive_file_id}/preview`}
-                  className="h-full w-full"
-                  allow="autoplay; fullscreen"
-                  allowFullScreen
-                  title={`Vídeo: ${film.title}`}
-                />
-                {/* Cobre o botão "abrir no Drive" do player (canto superior direito). */}
-                <div aria-hidden className="absolute right-0 top-0 h-16 w-16" />
-              </>
+              <DriveVideoPlayer fileId={film.drive_file_id} title={film.title} />
             ) : (
               <div className="flex h-full items-center justify-center p-6 text-center text-sm text-muted">
                 O vídeo deste filme ainda não foi enviado pela organização.

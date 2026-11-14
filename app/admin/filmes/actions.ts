@@ -49,6 +49,10 @@ export async function saveFilm(_prev: ActionState, fd: FormData): Promise<Action
       row.duration_ms = meta.durationMs;
       row.md5 = meta.md5;
       driveNote = ` Vídeo encontrado: ${meta.name}.`;
+      // O player do navegador (júri e telão) toca MP4/WebM; outros formatos podem falhar.
+      if (!["video/mp4", "video/webm"].includes(meta.mimeType)) {
+        driveNote += ` Atenção: o formato ${meta.mimeType} pode não tocar no navegador. Prefira MP4 (H.264).`;
+      }
     } else if (meta.status === "not_found") {
       driveNote =
         " Atenção: o Drive não liberou o vídeo. Confira se ele está como \"Qualquer pessoa com o link\".";

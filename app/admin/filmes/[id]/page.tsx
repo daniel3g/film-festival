@@ -7,6 +7,7 @@ import { FilmForm } from "../film-form";
 import { deleteFilm } from "../actions";
 import { PosterUpload } from "./poster-upload";
 import { CastForm } from "./cast-form";
+import { DriveVideoPlayer } from "@/components/drive-video-player";
 
 export const metadata: Metadata = { title: "Editar filme" };
 
@@ -73,18 +74,12 @@ export default async function FilmePage({ params, searchParams }: PageProps<"/ad
         {film.drive_file_id ? (
           <div className="mt-4 space-y-3">
             <p className="text-sm text-muted">
-              É assim que o júri vai assistir. Se aparecer &quot;Você precisa de acesso&quot;, o compartilhamento do
-              arquivo no Drive não está como &quot;Qualquer pessoa com o link&quot;.
+              É assim que o júri vai assistir. Se o vídeo não tocar, confira se o arquivo no Drive está como
+              &quot;Qualquer pessoa com o link&quot; e se é MP4.
               {duration && <> · Duração: {duration}</>}
             </p>
             <div className="aspect-video w-full max-w-3xl overflow-hidden rounded-md border border-gold/20 bg-black">
-              <iframe
-                src={`https://drive.google.com/file/d/${film.drive_file_id}/preview`}
-                className="h-full w-full"
-                allow="autoplay; fullscreen"
-                allowFullScreen
-                title={`Vídeo: ${film.title}`}
-              />
+              <DriveVideoPlayer fileId={film.drive_file_id} title={film.title} />
             </div>
           </div>
         ) : (
