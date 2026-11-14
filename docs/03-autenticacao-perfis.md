@@ -25,9 +25,9 @@ Não há escopo de Drive no login: o download dos filmes usa a chave de API, por
 
 A urna não pode ter login de pessoa: é rápida e anônima. Mas também não pode ser "qualquer navegador" votando.
 
-1. Admin → Votação → **Parear urna**. O sistema cria um `device` (por exemplo, "Urna 2") e mostra um **código de pareamento de 6 dígitos**, válido por 10 minutos.
-2. No computador da urna, o admin abre `/urna`, digita o código de pareamento e escolhe a cerimônia.
-3. O servidor devolve um **token do dispositivo** (aleatório, 32 bytes), guardado em cookie `httpOnly` com validade até o fim do dia. No banco fica só o hash.
+1. Admin → Votação → **Criar urna**. O sistema cria um `device` (por exemplo, "Urna 2", já com a cerimônia) e mostra um **código de pareamento de 8 caracteres** (`K7PX-3MHA`), válido por 10 minutos.
+2. No computador da urna, o admin abre `/urna` e digita o código de pareamento. A cerimônia da urna é escolhida e trocada no painel.
+3. O servidor devolve um **token do dispositivo** (aleatório, 32 bytes), guardado em cookie `httpOnly` com validade de 7 dias. No banco fica só o hash (com o `VOTE_CODE_PEPPER`).
 4. Toda chamada de voto exige esse token. O admin pode **trocar a cerimônia** da urna ou **revogar** o dispositivo a qualquer momento.
 
 Assim, só as 3 máquinas pareadas conseguem votar, e um código de cartão sozinho não vale fora delas.
@@ -54,5 +54,5 @@ Assim, só as 3 máquinas pareadas conseguem votar, e um código de cartão sozi
 
 - **RLS** no Postgres, com funções auxiliares `is_admin()` e `current_juror_id()` baseadas em `auth.uid()`.
 - **Rotas de servidor** conferem o papel antes de usar o cliente `service_role`.
-- A urna não usa sessão do Supabase. Ela chama `POST /api/urna/votar`, que valida o token do dispositivo e chama a função SQL `cast_vote` com o cliente `service_role`.
+- A urna não usa sessão do Supabase. As Server Actions de `/urna` leem o cookie, calculam os hashes e chamam as funções SQL `check_code` e `cast_vote` com a chave secreta (só o `service_role` pode executá-las). O estado da urna é consultado em `GET /api/urna/estado` a cada 3 s.
 - Middleware do Next.js bloqueia `/admin`, `/juri` e `/telao` sem sessão válida.

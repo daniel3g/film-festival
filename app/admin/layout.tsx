@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/filmes", label: "Filmes" },
   { href: "/admin/jurados", label: "Jurados" },
   { href: "/admin/juri", label: "Júri" },
+  { href: "/admin/votacao", label: "Votação" },
 ];
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {

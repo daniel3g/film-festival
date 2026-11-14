@@ -200,6 +200,72 @@ function summarizeTiebreak(
   };
 }
 
+export type PeoplesChoiceRow = {
+  filmId: string;
+  label: string;
+  votes: number;
+  /** média do júri em Melhor Filme */
+  picAvg: number | null;
+  /** média geral do júri (média das categorias de filme) */
+  overallAvg: number | null;
+};
+
+export type PeoplesChoiceResult = {
+  rows: PeoplesChoiceRow[]; // ordenadas por votos
+  totalVotes: number;
+  winnerRefs: string[];
+  /** critério que definiu o vencedor (docs/05) */
+  decidedBy: "votes" | "best_picture" | "jury_overall" | "shared" | null;
+};
+
+/**
+ * People's Choice com desempate em cascata:
+ * votos → média do júri em Melhor Filme → média geral do júri → prêmio dividido.
+ */
+export function computePeoplesChoice(
+  ceremony: CeremonyLite,
+  votesByFilm: Record<string, number>,
+  jury: CategoryResult[],
+): PeoplesChoiceResult {
+  const juryHere = jury.filter((r) => r.ceremonyId === ceremony.id);
+  const avgOf = (code: string, filmId: string) =>
+    juryHere.find((r) => r.category.code === code)?.rows.find((row) => row.ref === filmId)?.avg ?? null;
+  const filmCats = juryHere.filter((r) => r.category.kind === "film");
+
+  const rows: PeoplesChoiceRow[] = ceremony.films.map((f) => {
+    const avgs = filmCats
+      .map((r) => r.rows.find((row) => row.ref === f.id)?.avg)
+      .filter((v): v is number => v != null);
+    return {
+      filmId: f.id,
+      label: f.title,
+      votes: votesByFilm[f.id] ?? 0,
+      picAvg: avgOf("pic", f.id),
+      overallAvg: avgs.length ? avgs.reduce((a, b) => a + b, 0) / avgs.length : null,
+    };
+  });
+  rows.sort((a, b) => b.votes - a.votes);
+
+  const totalVotes = rows.reduce((a, r) => a + r.votes, 0);
+  if (totalVotes === 0) return { rows, totalVotes, winnerRefs: [], decidedBy: null };
+
+  const maxVotes = rows[0].votes;
+  let pool = rows.filter((r) => r.votes === maxVotes);
+  if (pool.length === 1) return { rows, totalVotes, winnerRefs: [pool[0].filmId], decidedBy: "votes" };
+
+  const narrow = (key: "picAvg" | "overallAvg") => {
+    const best = Math.max(...pool.map((r) => r[key] ?? -Infinity));
+    if (best === -Infinity) return pool; // ninguém tem nota: não desempata
+    return pool.filter((r) => r[key] !== null && best - (r[key] as number) < TIE_EPSILON);
+  };
+
+  pool = narrow("picAvg");
+  if (pool.length === 1) return { rows, totalVotes, winnerRefs: [pool[0].filmId], decidedBy: "best_picture" };
+  pool = narrow("overallAvg");
+  if (pool.length === 1) return { rows, totalVotes, winnerRefs: [pool[0].filmId], decidedBy: "jury_overall" };
+  return { rows, totalVotes, winnerRefs: pool.map((r) => r.filmId), decidedBy: "shared" };
+}
+
 /** Progresso: notas dadas × esperadas por jurado e filme. */
 export function computeProgress(data: JuryData) {
   const films = data.ceremonies.flatMap((c) => c.films.map((f) => ({ ...f, ceremonyName: c.name })));

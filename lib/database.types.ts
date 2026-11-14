@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -11,31 +11,6 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.18"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
   public: {
     Tables: {
@@ -213,8 +188,11 @@ export type Database = {
         Row: {
           ceremony_id: string | null
           created_at: string
+          failed_attempts: number
           id: string
           label: string
+          last_seen_at: string | null
+          locked_until: string | null
           pairing_code_hash: string | null
           pairing_expires_at: string | null
           revoked_at: string | null
@@ -223,8 +201,11 @@ export type Database = {
         Insert: {
           ceremony_id?: string | null
           created_at?: string
+          failed_attempts?: number
           id?: string
           label: string
+          last_seen_at?: string | null
+          locked_until?: string | null
           pairing_code_hash?: string | null
           pairing_expires_at?: string | null
           revoked_at?: string | null
@@ -233,8 +214,11 @@ export type Database = {
         Update: {
           ceremony_id?: string | null
           created_at?: string
+          failed_attempts?: number
           id?: string
           label?: string
+          last_seen_at?: string | null
+          locked_until?: string | null
           pairing_code_hash?: string | null
           pairing_expires_at?: string | null
           revoked_at?: string | null
@@ -701,6 +685,14 @@ export type Database = {
     }
     Functions: {
       active_edition_id: { Args: never; Returns: string }
+      cast_vote: {
+        Args: { p_code_hash: string; p_film: string; p_token_hash: string }
+        Returns: string
+      }
+      check_code: {
+        Args: { p_code_hash: string; p_token_hash: string }
+        Returns: string
+      }
       current_app_role: { Args: never; Returns: string }
       current_juror_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
@@ -714,6 +706,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      urna_register_failure: { Args: { p_device: string }; Returns: undefined }
     }
     Enums: {
       acting_category: "actress" | "actor"
@@ -730,7 +723,7 @@ export type Database = {
       staff_role: "admin"
       tiebreak_method: "majority" | "casting_vote"
       tiebreak_status: "open" | "decided"
-      vote_batch: "A" | "B" | "C"
+      vote_batch: "A" | "B" | "C" | "D"
       voting_status: "not_started" | "open" | "closed"
     }
     CompositeTypes: {
@@ -857,9 +850,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       acting_category: ["actress", "actor"],
@@ -877,7 +867,7 @@ export const Constants = {
       staff_role: ["admin"],
       tiebreak_method: ["majority", "casting_vote"],
       tiebreak_status: ["open", "decided"],
-      vote_batch: ["A", "B", "C"],
+      vote_batch: ["A", "B", "C", "D"],
       voting_status: ["not_started", "open", "closed"],
     },
   },
