@@ -8,6 +8,13 @@ export const BATCH_SIZE = 30;
 export const BATCHES = ["A", "B", "C", "D"] as const;
 export type Batch = (typeof BATCHES)[number];
 
+/** Votantes esperados por cerimônia (docs/01) → lotes recomendados (com 20% de folga). */
+export const EXPECTED_VOTERS: Record<string, number> = { JM: 60, SR: 59, JT: 95 };
+
+export function suggestedBatches(codePrefix: string) {
+  return Math.min(BATCHES.length, Math.ceil(((EXPECTED_VOTERS[codePrefix] ?? 60) * 1.2) / BATCH_SIZE));
+}
+
 function pepper() {
   const p = process.env.VOTE_CODE_PEPPER;
   if (!p || p.length < 16) throw new Error("VOTE_CODE_PEPPER não configurado.");

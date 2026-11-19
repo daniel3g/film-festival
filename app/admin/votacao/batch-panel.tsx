@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generateBatch, type GeneratedBatch } from "./actions";
+import { generateAllCards, generateBatch, type GeneratedBatch } from "./actions";
 
 type BatchInfo = { batch: "A" | "B" | "C" | "D"; total: number; used: number };
 
@@ -78,10 +78,8 @@ export function BatchPanel({
 
       {printing && (
         <CardsSheet
-          ceremonyName={ceremonyName}
-          shortName={shortName}
-          batch={printing.batch}
-          codes={printing.codes}
+          title={`${ceremonyName} · Lote ${printing.batch}`}
+          groups={[{ ceremonyName, shortName, batch: printing.batch, codes: printing.codes }]}
           onClose={() => setPrinting(null)}
         />
       )}
@@ -89,40 +87,81 @@ export function BatchPanel({
   );
 }
 
-/** Folha de cartões (15 por A4). Os códigos só existem aqui: imprima antes de fechar. */
-function CardsSheet({
-  ceremonyName,
-  shortName,
-  batch,
-  codes,
-  onClose,
-}: {
-  ceremonyName: string;
-  shortName: string;
-  batch: string;
-  codes: string[];
-  onClose: () => void;
-}) {
+type CardGroup = { ceremonyName: string; shortName: string; batch: string; codes: string[] };
+
+/** Gera os lotes que faltam das três cerimônias e abre tudo numa folha só (um PDF). */
+export function AllCardsButton({ pending }: { pending: number }) {
+  const [groups, setGroups] = useState<CardGroup[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, startTransition] = useTransition();
+
+  function run() {
+    if (
+      !window.confirm(
+        `Gerar ${pending} lotes de cartões de uma vez? Os códigos aparecem só agora: salve o PDF antes de fechar a folha.`,
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const r = await generateAllCards();
+      if (r.ok) setGroups(r.groups);
+      else setError(r.error);
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      <button type="button" className="btn" disabled={busy} onClick={run}>
+        {busy ? "Gerando…" : "Gerar todos e salvar PDF"}
+      </button>
+      {error && <p className="text-sm text-red-300">{error}</p>}
+      {groups && (
+        <CardsSheet
+          title={`Todas as cerimônias · ${groups.length} lotes`}
+          groups={groups}
+          onClose={() => setGroups(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Folha de cartões (15 por A4; cada lote de 30 ocupa 2 folhas inteiras).
+ * Os códigos só existem aqui: imprima ou salve o PDF antes de fechar.
+ */
+function CardsSheet({ title, groups, onClose }: { title: string; groups: CardGroup[]; onClose: () => void }) {
+  const total = groups.reduce((n, g) => n + g.codes.length, 0);
   return (
     <div className="fixed inset-0 z-50 overflow-auto bg-black/80 p-4 print:static print:bg-white print:p-0">
       <div className="mx-auto max-w-[210mm] space-y-4 print:max-w-none">
         <div className="card flex flex-wrap items-center justify-between gap-3 p-4 print:hidden">
           <div>
             <p className="font-medium">
-              {ceremonyName} · Lote {batch} · {codes.length} cartões
+              {title} · {total} cartões
             </p>
-            <p className="text-sm text-amber-300">
-              Imprima agora: por segurança, estes códigos não ficam guardados e não aparecem de novo.
+            {groups.length > 1 && (
+              <p className="mt-1 text-sm text-muted">
+                {groups.map((g) => `${g.shortName} ${g.batch}`).join(" · ")}
+              </p>
+            )}
+            <p className="mt-1 text-sm text-amber-300">
+              Por segurança, estes códigos não ficam guardados e não aparecem de novo. Clique em Imprimir e, em
+              &quot;Destino&quot;, escolha <strong>Salvar como PDF</strong>.
             </p>
           </div>
           <div className="flex gap-2">
             <button type="button" className="btn" onClick={() => window.print()}>
-              Imprimir
+              Imprimir / PDF
             </button>
             <button
               type="button"
               className="btn-ghost"
-              onClick={() => window.confirm("Já imprimiu os cartões? Depois de fechar, os códigos não aparecem de novo.") && onClose()}
+              onClick={() =>
+                window.confirm("Já salvou o PDF ou imprimiu? Depois de fechar, os códigos não aparecem de novo.") && onClose()
+              }
             >
               Fechar
             </button>
@@ -130,27 +169,29 @@ function CardsSheet({
         </div>
 
         <div className="print-area grid grid-cols-3 bg-white text-black">
-          {codes.map((code, i) => (
-            <div
-              key={code}
-              className="flex h-[54mm] flex-col items-center justify-between border border-dashed border-neutral-400 p-[4mm] text-center"
-            >
-              <div>
-                <p className="text-[8pt] uppercase tracking-[0.25em] text-neutral-600">Film Festival 2026</p>
-                <p className="font-display text-[13pt] leading-tight">People&apos;s Choice</p>
-                <p className="text-[8pt] text-neutral-600">{shortName}</p>
+          {groups.flatMap((g) =>
+            g.codes.map((code, i) => (
+              <div
+                key={code}
+                className="flex h-[54mm] flex-col items-center justify-between border border-dashed border-neutral-400 p-[4mm] text-center"
+              >
+                <div>
+                  <p className="text-[8pt] uppercase tracking-[0.25em] text-neutral-600">Film Festival 2026</p>
+                  <p className="font-display text-[13pt] leading-tight">People&apos;s Choice</p>
+                  <p className="text-[8pt] text-neutral-600">{g.shortName}</p>
+                </div>
+                <p className="font-mono text-[20pt] font-bold tracking-[0.12em]">{code}</p>
+                <div>
+                  <p className="text-[7.5pt] leading-snug text-neutral-700">
+                    Digite este código na urna e escolha seu filme favorito. Vale um voto.
+                  </p>
+                  <p className="mt-1 text-[6.5pt] text-neutral-500">
+                    {g.shortName} · Lote {g.batch} · {String(i + 1).padStart(2, "0")}
+                  </p>
+                </div>
               </div>
-              <p className="font-mono text-[20pt] font-bold tracking-[0.12em]">{code}</p>
-              <div>
-                <p className="text-[7.5pt] leading-snug text-neutral-700">
-                  Digite este código na urna e escolha seu filme favorito. Vale um voto.
-                </p>
-                <p className="mt-1 text-[6.5pt] text-neutral-500">
-                  Lote {batch} · {String(i + 1).padStart(2, "0")}
-                </p>
-              </div>
-            </div>
-          ))}
+            )),
+          )}
         </div>
       </div>
     </div>

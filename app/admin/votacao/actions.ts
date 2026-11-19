@@ -3,7 +3,16 @@
 import { refresh } from "next/cache";
 import { adminClient, dbError, field, type ActionState } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { BATCHES, BATCH_SIZE, hashCode, hashToken, newPairingCode, randomCodeBody, type Batch } from "@/lib/vote-codes";
+import {
+  BATCHES,
+  BATCH_SIZE,
+  hashCode,
+  hashToken,
+  newPairingCode,
+  randomCodeBody,
+  suggestedBatches,
+  type Batch,
+} from "@/lib/vote-codes";
 
 const NO_ACCESS = "Sem permissão. Entre de novo como admin.";
 
@@ -63,6 +72,58 @@ export async function generateBatch(ceremonyId: string, batch: Batch): Promise<G
   const { data: cer } = await supabase.from("ceremonies").select("id, name, code_prefix").eq("id", ceremonyId).single();
   if (!cer) return { ok: false, error: "Cerimônia não encontrada." };
 
+  const r = await createBatch(supabase, cer, batch);
+  if (r.ok) refresh();
+  return r;
+}
+
+type CardGroup = { ceremonyName: string; shortName: string; batch: Batch; codes: string[] };
+export type GeneratedAll = { ok: true; groups: CardGroup[] } | { ok: false; error: string };
+
+/**
+ * Gera de uma vez os lotes recomendados que faltam em todas as cerimônias da
+ * edição ativa, para imprimir tudo num arquivo só. Lotes que já existem não
+ * são tocados (os cartões deles podem já estar impressos).
+ */
+export async function generateAllCards(): Promise<GeneratedAll> {
+  const supabase = await adminClient();
+  if (!supabase) return { ok: false, error: NO_ACCESS };
+
+  const { data: ceremonies } = await supabase
+    .from("ceremonies")
+    .select("id, name, short_name, code_prefix, editions!inner(is_active)")
+    .eq("editions.is_active", true)
+    .order("sort_order");
+  if (!ceremonies?.length) return { ok: false, error: "Nenhuma cerimônia na edição ativa." };
+
+  const { data: existing } = await createAdminClient().from("vote_codes").select("ceremony_id, batch");
+  const groups: CardGroup[] = [];
+  for (const cer of ceremonies) {
+    const have = new Set((existing ?? []).filter((k) => k.ceremony_id === cer.id).map((k) => k.batch));
+    for (const batch of BATCHES.slice(0, suggestedBatches(cer.code_prefix))) {
+      if (have.has(batch)) continue;
+      let r = await createBatch(supabase, cer, batch);
+      if (!r.ok && r.error.startsWith("Colisão")) r = await createBatch(supabase, cer, batch);
+      if (!r.ok) {
+        refresh();
+        // Os lotes já gerados nesta chamada valem: mostra-os para imprimir mesmo assim.
+        if (groups.length) return { ok: true, groups };
+        return { ok: false, error: r.error };
+      }
+      groups.push({ ceremonyName: cer.name, shortName: cer.short_name, batch, codes: r.codes });
+    }
+  }
+  refresh();
+  if (!groups.length) return { ok: false, error: "Todos os lotes recomendados já foram gerados." };
+  return { ok: true, groups };
+}
+
+async function createBatch(
+  supabase: NonNullable<Awaited<ReturnType<typeof adminClient>>>,
+  cer: { id: string; name: string; code_prefix: string },
+  batch: Batch,
+): Promise<GeneratedBatch> {
+  const ceremonyId = cer.id;
   const service = createAdminClient();
   const { data: existing } = await service
     .from("vote_codes")
@@ -96,7 +157,6 @@ export async function generateBatch(ceremonyId: string, batch: Batch): Promise<G
     p_entity_id: ceremonyId,
     p_details: { batch, count: list.length },
   });
-  refresh();
   return { ok: true, ceremonyName: cer.name, batch, codes: list.sort() };
 }
 

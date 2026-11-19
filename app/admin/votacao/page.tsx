@@ -2,17 +2,14 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { computeJuryResults, computePeoplesChoice, loadJuryData } from "@/lib/results";
-import { BATCHES, BATCH_SIZE } from "@/lib/vote-codes";
+import { BATCHES, BATCH_SIZE, EXPECTED_VOTERS, suggestedBatches } from "@/lib/vote-codes";
 import { setVotingStatus } from "./actions";
-import { BatchPanel } from "./batch-panel";
+import { AllCardsButton, BatchPanel } from "./batch-panel";
 import { DevicesPanel } from "./devices-panel";
 import { LiveProvider, LiveVotes } from "./live";
 import { ResetVoting } from "./reset-voting";
 
 export const metadata: Metadata = { title: "Votação" };
-
-/** Votantes esperados por cerimônia (docs/01) → lotes recomendados. */
-const EXPECTED_VOTERS: Record<string, number> = { JM: 60, SR: 59, JT: 95 };
 
 const STATUS_LABEL = { not_started: "não aberta", open: "ABERTA", closed: "encerrada" } as const;
 const DECIDED_BY = {
@@ -54,6 +51,27 @@ export default async function VotacaoPage() {
           </p>
         </div>
 
+        {/* ---------------- Todos os cartões num arquivo só */}
+        {(() => {
+          const pending = (ceremonies ?? []).reduce((n, c) => {
+            const used = new Set((codes ?? []).filter((k) => k.ceremony_id === c.id).map((k) => k.batch));
+            return n + BATCHES.slice(0, suggestedBatches(c.code_prefix)).filter((b) => !used.has(b)).length;
+          }, 0);
+          return (
+            <section className="card flex flex-wrap items-center justify-between gap-4 p-5">
+              <div>
+                <h2 className="font-display text-xl">Todos os cartões de uma vez</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {pending > 0
+                    ? `Gera os ${pending} lotes recomendados que faltam (${pending * BATCH_SIZE} cartões), das três cerimônias, numa folha só. Na janela de impressão, escolha "Salvar como PDF" para ter um arquivo único.`
+                    : "Todos os lotes recomendados já foram gerados. Para um lote extra, use o botão da cerimônia."}
+                </p>
+              </div>
+              {pending > 0 && <AllCardsButton pending={pending} />}
+            </section>
+          );
+        })()}
+
         {/* ---------------- Cerimônias */}
         <section className="grid gap-4 lg:grid-cols-3">
           {ceremonies?.map((c) => {
@@ -62,10 +80,7 @@ export default async function VotacaoPage() {
               const list = mine.filter((k) => k.batch === b);
               return { batch: b, total: list.length, used: list.filter((k) => k.used_at).length };
             });
-            const suggested = Math.min(
-              BATCHES.length,
-              Math.ceil(((EXPECTED_VOTERS[c.code_prefix] ?? 60) * 1.2) / BATCH_SIZE),
-            );
+            const suggested = suggestedBatches(c.code_prefix);
             const status = c.voting_status;
             const cer = juryData.ceremonies.find((x) => x.id === c.id);
             const votesByFilm: Record<string, number> = {};
