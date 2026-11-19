@@ -7,7 +7,8 @@ import { FilmForm } from "../film-form";
 import { deleteFilm } from "../actions";
 import { PosterUpload } from "./poster-upload";
 import { CastForm } from "./cast-form";
-import { DriveVideoPlayer } from "@/components/drive-video-player";
+import { FilmVideoPlayer } from "@/components/film-video-player";
+import { VideoUpload } from "./video-upload";
 
 export const metadata: Metadata = { title: "Editar filme" };
 
@@ -71,19 +72,35 @@ export default async function FilmePage({ params, searchParams }: PageProps<"/ad
 
       <section className="card p-6">
         <h2 className="font-display text-xl">Vídeo</h2>
-        {film.drive_file_id ? (
-          <div className="mt-4 space-y-3">
-            <p className="text-sm text-muted">
-              É assim que o júri vai assistir. Se o vídeo não tocar, confira se o arquivo no Drive está como
-              &quot;Qualquer pessoa com o link&quot; e se é MP4.
-              {duration && <> · Duração: {duration}</>}
-            </p>
+        <p className="mt-1 text-sm text-muted">
+          {film.video_key ? (
+            <span className="text-emerald-300">✓ Vídeo no servidor do festival.</span>
+          ) : film.drive_file_id ? (
+            <span className="text-amber-300">
+              Vídeo só no Drive, que tem limite de downloads por arquivo. Envie o arquivo aqui para o júri e o telão
+              usarem o servidor do festival.
+            </span>
+          ) : (
+            <span className="text-amber-300">Sem vídeo. Envie o arquivo (MP4, de preferência).</span>
+          )}
+          {duration && <> · Duração: {duration}</>}
+        </p>
+        <div className="mt-4">
+          <VideoUpload filmId={film.id} hasVideo={!!film.video_key} />
+        </div>
+        {(film.video_key || film.drive_file_id) && (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-muted">É assim que o júri vai assistir:</p>
             <div className="aspect-video w-full max-w-3xl overflow-hidden rounded-md border border-gold/20 bg-black">
-              <DriveVideoPlayer fileId={film.drive_file_id} title={film.title} />
+              <FilmVideoPlayer
+                key={film.video_key ?? film.drive_file_id}
+                filmId={film.id}
+                hasVideo={!!film.video_key}
+                driveFileId={film.drive_file_id}
+                title={film.title}
+              />
             </div>
           </div>
-        ) : (
-          <p className="mt-2 text-sm text-amber-300">Sem vídeo. Cole o link do Drive nos dados do filme.</p>
         )}
       </section>
 

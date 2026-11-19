@@ -39,7 +39,7 @@ sequenceDiagram
 Admin → Cerimônia → **Baixar filmes**, no notebook do telão, em Chrome.
 
 1. Pede `navigator.storage.persist()` para o navegador não apagar os arquivos e confere `navigator.storage.estimate()`. Precisa de cerca de **5 GB livres** para as 3 cerimônias.
-2. Para cada filme: `fetch` do Drive com `alt=media&key={API_KEY}` (arquivo público, sem login no Google) → `response.body` lido em blocos → `FileSystemWritableFileStream` no **OPFS** (`/films/{filmId}.mp4`). Mostra o progresso por arquivo e o total.
+2. Para cada filme: `fetch("/api/video/{filmId}")`, que redireciona para um link assinado do **R2** (se o filme ainda não estiver no R2, cai no Drive com `alt=media&key={API_KEY}`, sujeito à cota de downloads) → `response.body` lido em blocos → `FileSystemWritableFileStream` no **OPFS** (`/films/{filmId}.mp4`). Mostra o progresso por arquivo e o total.
 3. **Verificação:** compara o tamanho com `size_bytes`; abre o arquivo num `<video>` oculto e confere `duration` contra `duration_ms` (tolerância de 1 s); faz `seek` para perto do fim e confere que decodifica. Se falhar, baixa de novo.
 4. Trilha: baixa as faixas do Storage (as que valem para aquela cerimônia) para `/soundtrack/{cue}.mp3`.
 5. **Snapshot da cerimônia:** a página do painel já traz os resultados do júri, os textos e os pôsteres. O service worker (`public/sw.js`) guarda a última cópia de `/telao/*` (rede primeiro, cópia sem rede) e os arquivos do app (`/_next/static`, cache primeiro). Por isso é preciso **abrir o modo apresentação uma vez com internet**, depois de baixar. O resultado do People's Choice só entra no dia, ao encerrar a votação.

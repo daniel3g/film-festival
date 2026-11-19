@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { adminClient, dbError, field, type ActionState } from "@/lib/admin";
 import { fetchDriveMetadata, parseDriveLink } from "@/lib/drive";
+import { deleteVideo, newVideoKey, r2Configured, signedUploadUrl } from "@/lib/r2";
 
 const NO_ACCESS: ActionState = { error: "Sem permissão. Entre de novo como admin." };
 
@@ -62,7 +63,15 @@ export async function saveFilm(_prev: ActionState, fd: FormData): Promise<Action
   }
 
   if (id) {
-    const { error } = await supabase.from("films").update(row).eq("id", id);
+    // Com vídeo no R2, tamanho e duração são os do arquivo de lá (o telão confere o download por eles).
+    const { data: current } = await supabase.from("films").select("video_key").eq("id", id).maybeSingle();
+    const update: Partial<typeof row> = { ...row };
+    if (current?.video_key) {
+      delete update.size_bytes;
+      delete update.duration_ms;
+      delete update.md5;
+    }
+    const { error } = await supabase.from("films").update(update).eq("id", id);
     if (error) return { error: dbError(error) };
     refresh();
     return { message: `Filme salvo.${driveNote}` };
@@ -78,11 +87,12 @@ export async function deleteFilm(fd: FormData) {
   const id = field(fd, "id");
   if (!supabase || !id) return;
 
-  const { data: film } = await supabase.from("films").select("title, poster_path").eq("id", id).single();
+  const { data: film } = await supabase.from("films").select("title, poster_path, video_key").eq("id", id).single();
   const { error } = await supabase.from("films").delete().eq("id", id);
   if (error) throw new Error(dbError(error, "Não foi possível excluir."));
 
   if (film?.poster_path) await supabase.storage.from("posters").remove([film.poster_path]);
+  if (film?.video_key) await deleteVideo(film.video_key).catch(() => {});
   await supabase.rpc("log_action", {
     p_action: "film.delete",
     p_entity: "films",
@@ -90,6 +100,51 @@ export async function deleteFilm(fd: FormData) {
     p_details: { title: film?.title ?? null },
   });
   redirect("/admin/filmes");
+}
+
+// ---------------------------------------------------------------- vídeo (R2)
+
+const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+
+/** Link para o navegador enviar o vídeo direto ao R2. */
+export async function createVideoUpload(
+  filmId: string,
+  fileName: string,
+  contentType: string,
+): Promise<{ url: string; key: string } | { error: string }> {
+  const supabase = await adminClient();
+  if (!supabase) return NO_ACCESS as { error: string };
+  if (!r2Configured()) return { error: "Armazenamento de vídeos não configurado (R2)." };
+  if (!VIDEO_TYPES.includes(contentType)) return { error: "Use um vídeo MP4 (de preferência), MOV ou WebM." };
+
+  const { data: film } = await supabase.from("films").select("id").eq("id", filmId).maybeSingle();
+  if (!film) return { error: "Filme não encontrado." };
+
+  const key = newVideoKey(filmId, fileName);
+  return { url: await signedUploadUrl(key, contentType), key };
+}
+
+/** Chamado depois que o navegador terminou de enviar o vídeo ao R2. */
+export async function setFilmVideo(
+  filmId: string,
+  key: string,
+  sizeBytes: number,
+  durationMs: number | null,
+): Promise<ActionState> {
+  const supabase = await adminClient();
+  if (!supabase) return NO_ACCESS;
+  if (!key.startsWith(`films/${filmId}/`)) return { error: "Caminho de arquivo inválido." };
+
+  const { data: film } = await supabase.from("films").select("video_key").eq("id", filmId).single();
+  const { error } = await supabase
+    .from("films")
+    .update({ video_key: key, size_bytes: sizeBytes, duration_ms: durationMs, md5: null })
+    .eq("id", filmId);
+  if (error) return { error: dbError(error) };
+
+  if (film?.video_key && film.video_key !== key) await deleteVideo(film.video_key).catch(() => {});
+  refresh();
+  return { message: "Vídeo enviado. O júri e o telão já usam este arquivo." };
 }
 
 // ---------------------------------------------------------------- pôster

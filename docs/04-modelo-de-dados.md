@@ -62,6 +62,7 @@ erDiagram
 | class_name | text | Turma, por exemplo "8th A" |
 | synopsis | text | Sinopse curta (urna, galeria) |
 | drive_file_id | text | Extraído do link colado pelo admin |
+| video_key | text | Caminho do vídeo no R2 (`films/{id}/{aleatório}.mp4`). Se existir, júri e telão usam o R2; senão, o Drive |
 | size_bytes / duration_ms / md5 | bigint / int / text | Lidos da Drive API ao cadastrar |
 | poster_path | text | Caminho no Storage |
 | screening_order | int | Ordem de exibição na cerimônia |

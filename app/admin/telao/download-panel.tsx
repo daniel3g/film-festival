@@ -8,6 +8,7 @@ export type DlFilm = {
   id: string;
   title: string;
   driveFileId: string | null;
+  hasVideo: boolean;
   sizeBytes: number | null;
   durationMs: number | null;
   posterUrl: string | null;
@@ -56,8 +57,6 @@ export function DownloadPanel({ ceremonies, tracks }: { ceremonies: DlCeremony[]
   }, [supported, ceremonies]);
 
   async function download(c: DlCeremony) {
-    const key = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-    if (!key) return setMessage("Falta a chave do Google (NEXT_PUBLIC_GOOGLE_API_KEY).");
     setMessage(null);
     setRunning(c.id);
     const ctrl = new AbortController();
@@ -75,7 +74,7 @@ export function DownloadPanel({ ceremonies, tracks }: { ceremonies: DlCeremony[]
         if (ctrl.signal.aborted) break;
         const cur = await readFile(filmPath(f.id));
         const done = cur && f.sizeBytes && cur.size === f.sizeBytes && localStorage.getItem(okKey(f.id)) === String(cur.size);
-        if (!done) await downloadFilm(f, key, ctrl.signal);
+        if (!done) await downloadFilm(f, ctrl.signal);
         if (f.posterUrl) await saveUrl(f.posterUrl, posterPath(f.id), ctrl.signal).catch(() => {});
       }
       for (const t of tracks) {
@@ -91,17 +90,28 @@ export function DownloadPanel({ ceremonies, tracks }: { ceremonies: DlCeremony[]
     }
   }
 
-  async function downloadFilm(f: DlFilm, key: string, signal: AbortSignal) {
-    if (!f.driveFileId) {
-      setFilm(f.id, { s: "erro", msg: "sem link do Drive" });
+  async function downloadFilm(f: DlFilm, signal: AbortSignal) {
+    // Servidor do festival (R2) primeiro; o Drive tem cota de downloads por arquivo.
+    const key = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    const url = f.hasVideo
+      ? `/api/video/${f.id}`
+      : f.driveFileId && key
+        ? `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(f.driveFileId)}?alt=media&key=${key}`
+        : null;
+    if (!url) {
+      setFilm(f.id, { s: "erro", msg: "sem vídeo" });
       return;
     }
     localStorage.removeItem(okKey(f.id));
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         setFilm(f.id, { s: "baixando", got: 0 });
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(f.driveFileId)}?alt=media&key=${key}`, { signal });
-        if (!res.ok || !res.body) throw new Error(`Drive respondeu ${res.status}`);
+        const res = await fetch(url, { signal });
+        if (!res.ok || !res.body) {
+          throw new Error(
+            res.status === 403 && !f.hasVideo ? "Drive bloqueou (limite de downloads): envie o vídeo no cadastro" : `servidor respondeu ${res.status}`,
+          );
+        }
         let lastUi = 0;
         const size = await writeStream(
           filmPath(f.id),
@@ -115,7 +125,7 @@ export function DownloadPanel({ ceremonies, tracks }: { ceremonies: DlCeremony[]
           },
           signal,
         );
-        if (f.sizeBytes && size !== f.sizeBytes) throw new Error("tamanho diferente do Drive");
+        if (f.sizeBytes && size !== f.sizeBytes) throw new Error("tamanho diferente do cadastro");
         setFilm(f.id, { s: "conferindo" });
         const file = await readFile(filmPath(f.id));
         if (!file) throw new Error("arquivo não encontrado depois do download");
@@ -299,7 +309,7 @@ async function verifyVideo(file: File, durationMs: number | null): Promise<strin
     v.src = url;
     await meta;
     if (!Number.isFinite(v.duration) || v.duration <= 0) return "duração inválida";
-    if (durationMs && Math.abs(v.duration * 1000 - durationMs) > 1500) return "duração diferente da do Drive";
+    if (durationMs && Math.abs(v.duration * 1000 - durationMs) > 1500) return "duração diferente da do cadastro";
     const seeked = waitFor(v, "seeked", 30000);
     v.currentTime = Math.max(0, v.duration - 1);
     await seeked;

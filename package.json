@@ -10,9 +10,12 @@
     "test": "node --conditions=react-server --import tsx --test tests/*.test.ts",
     "sb": "node scripts/supabase.mjs",
     "db:push": "node scripts/supabase.mjs db push --linked",
-    "db:types": "node scripts/supabase.mjs gen types typescript --linked --schema public > lib/database.types.ts"
+    "db:types": "node scripts/supabase.mjs gen types typescript --linked --schema public > lib/database.types.ts",
+    "videos:copiar": "node --env-file=.env.local scripts/copy-drive-to-r2.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1172.0",
+    "@aws-sdk/s3-request-presigner": "^3.1172.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
     "next": "16.4.6",

@@ -11,7 +11,7 @@ export default async function JuriHome() {
   const [{ data: ceremonies }, categories, { data: myScores }, { data: edition }, { data: tiebreaks }, { data: myVotes }] = await Promise.all([
     supabase
       .from("ceremonies")
-      .select("id, name, sort_order, films(id, title, class_name, screening_order, poster_path, drive_file_id, cast_members(id, student_name, role_name, is_evaluated, acting_category))")
+      .select("id, name, sort_order, films(id, title, class_name, screening_order, poster_path, drive_file_id, video_key, cast_members(id, student_name, role_name, is_evaluated, acting_category))")
       .order("sort_order")
       .order("screening_order", { referencedTable: "films" }),
     getJuryCategories(supabase),
@@ -124,7 +124,7 @@ export default async function JuriHome() {
                         <p className={`mt-2 text-xs ${complete ? "text-emerald-300" : f.given ? "text-amber-300" : "text-muted"}`}>
                           {complete ? "✓ avaliado" : `${f.given} de ${f.expected} notas`}
                         </p>
-                        {!f.drive_file_id && <p className="text-xs text-muted">vídeo em breve</p>}
+                        {!f.drive_file_id && !f.video_key && <p className="text-xs text-muted">vídeo em breve</p>}
                       </div>
                     </Link>
                   </li>

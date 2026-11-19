@@ -91,6 +91,7 @@ export default function Projector({ ceremonyId }: { ceremonyId: string }) {
                 filmId={film.film.id}
                 title={film.film.title}
                 driveFileId={film.driveFileId}
+                hasVideo={film.hasVideo}
                 localFile={localFiles[film.film.id] ?? null}
                 videoRef={videoRef}
                 send={send}
@@ -120,6 +121,7 @@ function FilmPlayer({
   filmId,
   title,
   driveFileId,
+  hasVideo,
   localFile,
   videoRef,
   send,
@@ -127,6 +129,7 @@ function FilmPlayer({
   filmId: string;
   title: string;
   driveFileId: string | null;
+  hasVideo: boolean;
   localFile: File | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   send: (m: ProjectorMsg) => void;
@@ -148,6 +151,9 @@ function FilmPlayer({
         if (f && f.size > 0) {
           url = blobUrl = URL.createObjectURL(f);
           source = "offline";
+        } else if (hasVideo) {
+          url = `/api/video/${filmId}`;
+          source = "internet";
         } else if (driveFileId && process.env.NEXT_PUBLIC_GOOGLE_API_KEY) {
           url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(driveFileId)}?alt=media&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`;
           source = "internet";
@@ -165,7 +171,7 @@ function FilmPlayer({
       alive = false;
       if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
-  }, [filmId, driveFileId, localFile, send]);
+  }, [filmId, driveFileId, hasVideo, localFile, send]);
 
   const last = useRef(0);
   const report = (force = false) => {

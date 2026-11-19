@@ -13,7 +13,7 @@ export async function loadShow(supabase: SupabaseServer, ceremonyId: string): Pr
     supabase
       .from("ceremonies")
       .select(
-        "id, name, short_name, voting_status, sort_order, edition_id, editions!inner(name, jury_status, is_active), films(id, title, class_name, poster_path, drive_file_id, size_bytes, duration_ms, screening_order)",
+        "id, name, short_name, voting_status, sort_order, edition_id, editions!inner(name, jury_status, is_active), films(id, title, class_name, poster_path, drive_file_id, video_key, size_bytes, duration_ms, screening_order)",
       )
       .eq("id", ceremonyId)
       .order("screening_order", { referencedTable: "films" })
@@ -38,6 +38,7 @@ export async function loadShow(supabase: SupabaseServer, ceremonyId: string): Pr
     className: f.class_name,
     posterUrl: f.poster_path ? (posterUrls.get(f.poster_path) ?? null) : null,
     driveFileId: f.drive_file_id,
+    hasVideo: !!f.video_key,
     sizeBytes: f.size_bytes,
     durationMs: f.duration_ms,
   }));

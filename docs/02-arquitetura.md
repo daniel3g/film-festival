@@ -75,14 +75,26 @@ Lógica sensível (voto, notas, galeria, resultados) roda **no servidor**, em Ro
 - **Auth:** provedor Google. Jurados precisam ter e-mail `@colegioprogresso.g12.br` (conferido no servidor) e estar na lista da edição. Admins entram pela lista `staff`, com qualquer conta Google (o admin principal usa Gmail).
 - **Storage:** bucket `posters` (leitura pública só para filmes liberados, servida via URL assinada) e bucket `soundtrack` (privado).
 
-### Google Drive
+### Vídeos: Cloudflare R2 (principal) e Google Drive (reserva)
+
+Em 18/11/2026 o Drive passou a responder `403 downloadQuotaExceeded` para vários filmes: arquivos públicos têm uma **cota de downloads por arquivo** (não divulgada, libera em até 24h), e cada vez que o player abre ou avança o vídeo conta como download. Por isso os vídeos foram para o **R2**: bucket privado `film-festival-videos`, sem custo de tráfego de saída.
+
+| Uso | Como |
+|---|---|
+| Cadastro | Página do filme no admin → **Enviar vídeo**. O servidor gera um link assinado de `PUT` e o navegador envia o arquivo direto ao R2 (não passa pela Vercel). Grava `films.video_key`, `size_bytes` e `duration_ms` (lida no navegador) |
+| Cópia em lote | `npm run videos:copiar` copia do Drive para o R2 os filmes que ainda não estão lá (`-- --listar` só mostra a situação) |
+| Jurado assiste | `<video src="/api/video/{filmId}">`. A rota confere o acesso pelo RLS (jurado da edição ativa ou admin) e redireciona (302) para um link assinado de 6h do R2 |
+| Telão baixa | `fetch("/api/video/{filmId}")` → mesmo redirecionamento → grava em streaming no OPFS |
+| Reserva | Filme sem `video_key`: lê do Drive pela API (`alt=media&key=…`). Se o Drive bloquear (403/404), o player troca sozinho para o iframe `drive.google.com/file/d/{id}/preview`, que não usa a cota |
+
+Variáveis (só no servidor): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. O token do R2 tem só **Object Read & Write** no bucket; a política de CORS do bucket (configurada no painel) libera `GET`/`HEAD`/`PUT` para o domínio do site e `localhost:3000`.
+
+### Google Drive (reserva)
 
 | Uso | Como |
 |---|---|
 | Cadastro | O admin **cola o link de compartilhamento** do vídeo; o sistema extrai o `fileId` e confere se o arquivo está acessível |
-| Jurado assiste | Iframe `https://drive.google.com/file/d/{id}/preview`. Funciona sem login no Google, porque o arquivo é público por link |
-| Telão baixa | O navegador do admin chama `GET https://www.googleapis.com/drive/v3/files/{id}?alt=media&key={API_KEY}` e grava o arquivo em streaming no OPFS. O vídeo não passa pela Vercel |
-| Metadados | `size`, `md5Checksum`, `videoMediaMetadata.durationMillis`, lidos pela mesma chave ao cadastrar o filme |
+| Metadados | `size`, `md5Checksum`, `videoMediaMetadata.durationMillis`, lidos pela mesma chave ao cadastrar o filme (se o filme ainda não tem vídeo no R2) |
 
 **Pré-requisitos:**
 - Os vídeos ficam numa **pasta do Drive do admin**, compartilhada como "qualquer pessoa com o link: leitor".

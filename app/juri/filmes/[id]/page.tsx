@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getJuryCategories, scoreItemsFor, scoreKey } from "@/lib/jury";
-import { DriveVideoPlayer } from "@/components/drive-video-player";
+import { FilmVideoPlayer } from "@/components/film-video-player";
 import { ScorePanel } from "./score-panel";
 
 export const metadata: Metadata = { title: "Avaliar filme" };
@@ -16,7 +16,7 @@ export default async function JuriFilmePage({ params }: PageProps<"/juri/filmes/
   const [{ data: film }, categories, { data: myScores }, { data: allFilms }, { data: edition }] = await Promise.all([
     supabase
       .from("films")
-      .select("id, title, class_name, synopsis, drive_file_id, ceremonies(name), cast_members(id, student_name, role_name, is_evaluated, acting_category, sort_order)")
+      .select("id, title, class_name, synopsis, drive_file_id, video_key, ceremonies(name), cast_members(id, student_name, role_name, is_evaluated, acting_category, sort_order)")
       .eq("id", id)
       .order("sort_order", { referencedTable: "cast_members" })
       .maybeSingle(),
@@ -62,8 +62,13 @@ export default async function JuriFilmePage({ params }: PageProps<"/juri/filmes/
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
           <div className="aspect-video w-full overflow-hidden rounded-lg border border-gold/20 bg-black">
-            {film.drive_file_id ? (
-              <DriveVideoPlayer fileId={film.drive_file_id} title={film.title} />
+            {film.video_key || film.drive_file_id ? (
+              <FilmVideoPlayer
+                filmId={film.id}
+                hasVideo={!!film.video_key}
+                driveFileId={film.drive_file_id}
+                title={film.title}
+              />
             ) : (
               <div className="flex h-full items-center justify-center p-6 text-center text-sm text-muted">
                 O vídeo deste filme ainda não foi enviado pela organização.

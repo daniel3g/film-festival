@@ -47,8 +47,8 @@ const show: Show = {
   juryClosed: true,
   nextCeremony: null,
   films: [
-    { id: "f1", title: "Filme 1", className: "8A", posterUrl: null, driveFileId: "d1", sizeBytes: 1, durationMs: 1 },
-    { id: "f2", title: "Filme 2", className: "9A", posterUrl: null, driveFileId: "d2", sizeBytes: 1, durationMs: 1 },
+    { id: "f1", title: "Filme 1", className: "8A", posterUrl: null, driveFileId: "d1", hasVideo: false, sizeBytes: 1, durationMs: 1 },
+    { id: "f2", title: "Filme 2", className: "9A", posterUrl: null, driveFileId: "d2", hasVideo: false, sizeBytes: 1, durationMs: 1 },
   ],
   awards: [award("scr"), award("pic")],
   pcInfo: { en: "People's Choice", pt: "Escolha do Público" },

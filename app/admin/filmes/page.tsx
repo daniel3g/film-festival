@@ -9,7 +9,7 @@ export default async function FilmesPage() {
   const { data: ceremonies } = await supabase
     .from("ceremonies")
     .select(
-      "id, name, sort_order, editions!inner(is_active), films(id, title, class_name, screening_order, poster_path, drive_file_id, cast_members(is_evaluated))",
+      "id, name, sort_order, editions!inner(is_active), films(id, title, class_name, screening_order, poster_path, drive_file_id, video_key, cast_members(is_evaluated))",
     )
     .eq("editions.is_active", true)
     .order("sort_order")
@@ -58,8 +58,8 @@ export default async function FilmesPage() {
                         <p className="text-xs text-muted">#{f.screening_order} · {f.class_name ?? "turma?"}</p>
                         <p className="truncate font-medium">{f.title}</p>
                         <ul className="mt-2 space-y-0.5 text-xs">
-                          <li className={f.drive_file_id ? "text-emerald-300" : "text-amber-300"}>
-                            {f.drive_file_id ? "✓ vídeo" : "• falta o vídeo"}
+                          <li className={f.video_key ? "text-emerald-300" : "text-amber-300"}>
+                            {f.video_key ? "✓ vídeo no servidor" : f.drive_file_id ? "• vídeo só no Drive" : "• falta o vídeo"}
                           </li>
                           <li className={evaluated ? "text-emerald-300" : "text-amber-300"}>
                             {evaluated ? `✓ ${evaluated} avaliado(s) no elenco` : "• elenco avaliado vazio"}

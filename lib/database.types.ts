@@ -289,6 +289,7 @@ export type Database = {
           synopsis: string | null
           title: string
           updated_at: string
+          video_key: string | null
         }
         Insert: {
           ceremony_id: string
@@ -305,6 +306,7 @@ export type Database = {
           synopsis?: string | null
           title: string
           updated_at?: string
+          video_key?: string | null
         }
         Update: {
           ceremony_id?: string
@@ -321,6 +323,7 @@ export type Database = {
           synopsis?: string | null
           title?: string
           updated_at?: string
+          video_key?: string | null
         }
         Relationships: [
           {

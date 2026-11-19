@@ -15,7 +15,7 @@ export default async function AdminTelaoPage() {
   const [{ data: ceremonies }, { data: tracks }] = await Promise.all([
     supabase
       .from("ceremonies")
-      .select("id, name, sort_order, films(id, title, drive_file_id, size_bytes, duration_ms, poster_path, screening_order)")
+      .select("id, name, sort_order, films(id, title, drive_file_id, video_key, size_bytes, duration_ms, poster_path, screening_order)")
       .eq("edition_id", edition.id)
       .order("sort_order")
       .order("screening_order", { referencedTable: "films" }),
@@ -37,6 +37,7 @@ export default async function AdminTelaoPage() {
       id: f.id,
       title: f.title,
       driveFileId: f.drive_file_id,
+      hasVideo: !!f.video_key,
       sizeBytes: f.size_bytes,
       durationMs: f.duration_ms,
       posterUrl: f.poster_path ? (posters.get(f.poster_path) ?? null) : null,

@@ -10,6 +10,8 @@ export type ShowFilm = {
   className: string | null;
   posterUrl: string | null;
   driveFileId: string | null;
+  /** Vídeo no R2 (servido por /api/video/{id}). */
+  hasVideo: boolean;
   sizeBytes: number | null;
   durationMs: number | null;
 };
@@ -260,7 +262,7 @@ export function cueFor(s: Step): Cue | null {
 export type View =
   | { kind: "abertura"; edition: string; ceremony: string }
   | { kind: "cartela"; film: FilmCard }
-  | { kind: "filme"; film: FilmCard; driveFileId: string | null }
+  | { kind: "filme"; film: FilmCard; driveFileId: string | null; hasVideo: boolean }
   | { kind: "chamada"; films: FilmCard[] }
   | { kind: "encerrada" }
   | { kind: "cat"; en: string; pt: string; isPublic: boolean }
@@ -279,7 +281,7 @@ export function viewFor(show: Show, s: Step, pc: Award | null): View {
       return { kind: "cartela", film: toCard(film(s.filmId)) };
     case "filme": {
       const f = film(s.filmId);
-      return { kind: "filme", film: toCard(f), driveFileId: f?.driveFileId ?? null };
+      return { kind: "filme", film: toCard(f), driveFileId: f?.driveFileId ?? null, hasVideo: f?.hasVideo ?? false };
     }
     case "chamada":
       return { kind: "chamada", films: show.films.map(toCard) };
