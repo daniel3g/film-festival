@@ -67,7 +67,8 @@ export default async function VotacaoPage() {
                     : "Todos os lotes recomendados já foram gerados. Para um lote extra, use o botão da cerimônia."}
                 </p>
               </div>
-              {pending > 0 && <AllCardsButton pending={pending} />}
+              {/* Sempre montado: ao gerar, a página atualiza (pending vira 0) e a folha não pode sumir. */}
+              <AllCardsButton pending={pending} />
             </section>
           );
         })()}

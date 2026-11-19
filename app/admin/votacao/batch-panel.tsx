@@ -113,9 +113,11 @@ export function AllCardsButton({ pending }: { pending: number }) {
 
   return (
     <div className="space-y-2">
-      <button type="button" className="btn" disabled={busy} onClick={run}>
-        {busy ? "Gerando…" : "Gerar todos e salvar PDF"}
-      </button>
+      {(pending > 0 || busy) && (
+        <button type="button" className="btn" disabled={busy} onClick={run}>
+          {busy ? "Gerando…" : "Gerar todos e salvar PDF"}
+        </button>
+      )}
       {error && <p className="text-sm text-red-300">{error}</p>}
       {groups && (
         <CardsSheet
